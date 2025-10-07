@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -23,55 +22,80 @@
       padding: 20px;
       border-radius: 15px;
       box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-      width: 280px;
+      width: 340px; /* rộng hơn để chứa chữ to */
       text-align: center;
     }
 
     input {
       width: 100%;
-      height: 50px;
+      height: 80px;             /* cao hơn để thấy chữ to */
       text-align: right;
-      font-size: 22px;
-      margin-bottom: 10px;
-      border-radius: 10px;
+      font-size: 40px;         /* chữ hiển thị lớn */
+      margin-bottom: 12px;
+      border-radius: 12px;
       border: 1px solid #ccc;
-      padding: 5px 10px;
+      padding: 8px 12px;
       box-sizing: border-box;
+      font-weight: 600;
     }
 
     .buttons {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: 10px;
+      gap: 12px;
     }
 
     button {
-      height: 50px;
-      font-size: 18px;
+      height: 70px;            /* nút cao hơn */
+      font-size: 28px;        /* chữ số lớn hơn */
       border: none;
-      border-radius: 10px;
+      border-radius: 12px;
       background-color: #f2f2f2;
       cursor: pointer;
-      transition: 0.2s;
+      transition: 0.14s;
+      font-weight: 600;
     }
 
     button:hover {
-      background-color: #dcdcdc;
+      transform: translateY(-2px);
+      background-color: #e8e8e8;
+    }
+
+    /* Nút C nổi bật */
+    .clear-btn {
+      background-color: #ff4d4d;
+      color: white;
+      font-weight: bold;
+      font-size: 26px; /* vẫn to tương ứng */
+    }
+
+    .clear-btn:hover {
+      background-color: #e60000;
     }
 
     .equal {
       background-color: #4CAF50;
       color: white;
       font-weight: bold;
-      font-size: 18px;
+      font-size: 20px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0 15px;
+      padding: 0 10px;
+      height: 70px;
+      border-radius: 12px;
     }
 
     .equal:hover {
       background-color: #45a049;
+    }
+
+    .equal span {
+      display: inline-block;
+      width: 33%;
+      text-align: center;
+      font-weight: 700;
+      font-size: 20px;
     }
 
     .history {
@@ -79,8 +103,8 @@
       background: #fff;
       border-radius: 10px;
       padding: 10px;
-      width: 280px;
-      max-height: 160px;
+      width: 340px;
+      max-height: 180px;
       overflow-y: auto;
       font-size: 14px;
       box-shadow: inset 0 0 5px rgba(0,0,0,0.1);
@@ -94,11 +118,13 @@
 
     .history-item {
       border-bottom: 1px solid #eee;
-      padding: 4px 0;
+      padding: 6px 0;
+      font-size: 15px;
+      font-weight: 600;
     }
 
     .clear-history {
-      margin-top: 5px;
+      margin-top: 8px;
       text-align: center;
     }
 
@@ -114,6 +140,14 @@
 
     .clear-history button:hover {
       background-color: #c0392b;
+    }
+
+    @media (max-width: 420px) {
+      .calculator { width: 92%; }
+      .history { width: 92%; }
+      input { font-size: 34px; height: 70px; }
+      button { font-size: 24px; height: 64px; }
+      .equal span { font-size: 18px; }
     }
   </style>
 </head>
@@ -139,14 +173,14 @@
 
       <button onclick="appendValue('0')">0</button>
       <button onclick="appendValue('.')">.</button>
-      <button onclick="clearDisplay()">C</button>
+      <button class="clear-btn" onclick="clearDisplay()">C</button>
       <button onclick="appendValue('+')">+</button>
 
-      <!-- Nút = có chữ Vân và Nhựt -->
+      <!-- Nút = giữ Nhựt = Vân -->
       <button class="equal" style="grid-column: span 4;" onclick="calculateResult()">
-        <span>Vân</span>
-        <span>=</span>
         <span>Nhựt</span>
+        <span>=</span>
+        <span>Vân</span>
       </button>
     </div>
   </div>
