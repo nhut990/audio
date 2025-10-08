@@ -11,7 +11,6 @@
     #clock{font-family:monospace; letter-spacing:2px; text-align:center; margin-bottom:10px;}
     .center { text-align:center; }
 
-    /* RADIO STYLE */
     .radio-box {
       width: 220px;
       margin: 15px auto;
@@ -38,10 +37,8 @@
     @keyframes waveAnim { 0%,100%{height:4px}50%{height:14px} }
     .radio-box:not(.playing) .wave { opacity:0; transition:opacity .2s; }
 
-    /* audio player responsive */
     audio { width:90%; max-width:640px; margin:8px auto; display:block; }
 
-    /* logo marquee */
     .logo-marquee { width:100%; height:140px; overflow:hidden; margin-top:20px; }
     .marquee-track { display:flex; align-items:center; width:200%; animation:scrollLeft 10s linear infinite; }
     .marquee-track img { width:50%; max-height:120px; object-fit:contain; }
@@ -58,28 +55,41 @@
     }
   </style>
 
-  <!-- HLS.js để phát .m3u8 trên Chrome/Edge (Windows) -->
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 </head>
 <body>
-  <!-- Thiết bị -->
   <div id="device-info" class="center" style="margin-bottom:6px;"></div>
-
-  <!-- Đồng hồ -->
   <div id="clock" class="center" style="font-size:18px; font-weight:bold; color:#111;"></div>
 
   <script>
-    // Device detect + clock
     function detectDevice(){
       let ua = navigator.userAgent;
-      let os="Không xác định", device="Không rõ thiết bị";
-      if(/iPhone/i.test(ua)){ os="iOS"; device="iPhone"; }
-      else if(/iPad/i.test(ua)){ os="iPadOS"; device="iPad"; }
-      else if(/Android/i.test(ua)){ os="Android"; device="Thiết bị Android"; }
-      else if(/Windows/i.test(ua)){ os="Windows"; device="Máy tính"; }
-      else if(/Mac OS X/i.test(ua)){ os="macOS"; device="Mac"; }
-      document.getElementById('device-info').innerHTML = "<b>"+device+"</b> - <b>"+os+"</b>";
+      let os="Không xác định", device="Không rõ thiết bị", version="";
+
+      if(/iPhone|iPad|iPod/i.test(ua)){
+        os="iOS"; device = /iPad/i.test(ua) ? "iPad" : "iPhone";
+        let match = ua.match(/OS (\d+[_\.\d]*) like Mac OS X/);
+        if(match) version = " " + match[1].replace(/_/g,'.');
+      } else if(/Android/i.test(ua)){
+        os="Android"; device="Thiết bị Android";
+        let match = ua.match(/Android\s([\d\.]+)/);
+        if(match) version = " " + match[1];
+      } else if(/Windows NT/i.test(ua)){
+        os="Windows"; device="Máy tính";
+        let match = ua.match(/Windows NT ([\d\.]+)/);
+        if(match){
+          const map={"10.0":"10","6.3":"8.1","6.2":"8","6.1":"7"};
+          version = " " + (map[match[1]] || match[1]);
+        }
+      } else if(/Mac OS X/i.test(ua)){
+        os="macOS"; device="Mac";
+        let match = ua.match(/Mac OS X (\d+[_\.\d]*)/);
+        if(match) version = " " + match[1].replace(/_/g,'.');
+      }
+
+      document.getElementById('device-info').innerHTML = `<b>${device}</b> - <b>${os}${version}</b>`;
     }
+
     function updateClock(){
       const now=new Date();
       const h=String(now.getHours()).padStart(2,'0');
@@ -87,10 +97,13 @@
       const s=String(now.getSeconds()).padStart(2,'0');
       document.getElementById('clock').innerHTML = `<span style="color:#00cc66">${h}:${m}</span> <span style="color:red">${s}</span>`;
     }
-    detectDevice(); setInterval(updateClock,1000); updateClock();
+
+    detectDevice();
+    setInterval(updateClock,1000);
+    updateClock();
   </script>
 
-  <!-- ======= BÀI NHẠC — giữ nguyên danh sách từ code đầu tiên ======= -->
+  <!-- ======= DANH SÁCH NHẠC ======= -->
   <div class="center" style="margin-top:10px;">
     <div style="font-size:16px;font-weight:700;color:#333;margin-bottom:8px;">Nhạc Thiền Tĩnh Tâm An Lạc</div>
     <audio controls preload="none">
@@ -98,7 +111,6 @@
     </audio>
   </div>
 
-  <!-- Các bài khác (giữ nguyên links bạn dùng) -->
   <div class="center" style="margin-top:10px;">
     <div style="font-weight:700;margin-bottom:6px;">The Moment - Kenny G</div>
     <audio controls preload="none"><source src="https://github.com/nhut990/files/raw/refs/heads/main/Kenny%20G%20-%20The%20Moment.mp3" type="audio/mpeg"></audio>
@@ -139,7 +151,6 @@
     <audio controls preload="none"><source src="https://github.com/nhut990/files/raw/refs/heads/main/El%20Bimbo%20-%20Paul%20Mauriat%20-%20YouTube.mp3" type="audio/mpeg"></audio>
   </div>
 
-  <!-- Bài mới thêm -->
   <div class="center" style="margin-top:10px;">
     <div style="font-weight:700;margin-bottom:6px;">Lady Di - Richard Clayderman</div>
     <audio controls preload="none"><source src="https://github.com/nhut990/files/raw/refs/heads/main/Richard%20Clayderman%20-%20Lady%20Di%20(Official%20Video)%20-%20YouTube.mp3" type="audio/mpeg"></audio>
@@ -155,7 +166,7 @@
     <audio controls preload="none"><source src="https://github.com/nhut990/files/raw/refs/heads/main/Alla%20Figaro%20-%20Paul%20Mauriat%20-%20YouTube.mp3" type="audio/mpeg"></audio>
   </div>
 
-  <!-- ================= DANH SÁCH RADIO (4 radio cuối) ================= -->
+  <!-- ================= RADIO ================= -->
   <div class="radio-box" id="radio-box-1">
     <div class="radio-title">RADIO FM_99.9MHz</div>
     <button class="radio-btn" onclick="playRadio('radio-1','radio-box-1',this)"></button>
@@ -189,7 +200,6 @@
   </div>
 
   <script>
-    // Các stream radio từ code đầu tiên
     const radioStreams = {
       "radio-1": "https://strm.voh.com.vn/radio/channel3/playlist.m3u8",
       "radio-4": "https://strm.voh.com.vn/radio/channel5/playlist.m3u8",
@@ -197,91 +207,62 @@
       "radio-3": "https://strm.voh.com.vn/radio/channel2/playlist.m3u8"
     };
 
-    // khởi tạo HLS cho mỗi <audio> radio nếu cần
     Object.entries(radioStreams).forEach(([id, src]) => {
       const audio = document.getElementById(id);
-      // Nếu browser hỗ trợ hls.js
       if (window.Hls && Hls.isSupported()) {
         const hls = new Hls();
         hls.loadSource(src);
         hls.attachMedia(audio);
-        // lưu instance nếu cần debug (không expose global)
-        audio._hlsInstance = hls;
       } else if (audio.canPlayType('application/vnd.apple.mpegurl')) {
-        // Safari iOS/macOS có thể chơi trực tiếp
         audio.src = src;
       } else {
-        // fallback: đặt src (một số trình duyệt sẽ không chơi, nhưng Hls.js xử lý hầu hết)
         audio.src = src;
       }
     });
 
-    // Duy trì các ký tự nút thông qua mã Unicode để tránh entity
-    const PLAY_SYM = '\u25B6'; // ▶
-    const STOP_SYM = '\u23F9'; // ⏹
-
-    // gán text cho các nút lần đầu
+    const PLAY_SYM = '\u25B6';
+    const STOP_SYM = '\u23F9';
     document.querySelectorAll('.radio-btn').forEach(btn => btn.textContent = PLAY_SYM + ' Nghe Radio');
 
-    // Khi phát nhạc MP3 tắt radio
     const musicPlayers = Array.from(document.querySelectorAll("audio:not([id^='radio'])"));
     musicPlayers.forEach((a, idx) => {
       a.addEventListener('play', () => {
-        // pause tất cả radio
-        document.querySelectorAll("audio[id^='radio']").forEach(r => { r.pause(); if(r.parentElement) r.parentElement.classList.remove('playing') });
-        // pause các audio khác
+        document.querySelectorAll("audio[id^='radio']").forEach(r => r.pause());
         musicPlayers.forEach(o => { if(o !== a) o.pause(); });
       });
-      // chơi bài tiếp theo khi kết thúc
+
       a.addEventListener('ended', () => {
         const next = musicPlayers[idx+1];
-        if(next) next.play().catch(()=>{});
+        if(next){
+          next.play().catch(()=>{}); // phát tiếp bài sau
+        }
       });
     });
 
-    // Hàm play radio: giữ logic cũ + HLS support
     function playRadio(radioId, boxId, btn){
       const radio = document.getElementById(radioId);
       const box = document.getElementById(boxId);
 
       if (radio.paused) {
-        // dừng các radio khác
         document.querySelectorAll("audio[id^='radio']").forEach(r => {
-          if (r !== radio) {
-            try { r.pause(); r.currentTime = 0; } catch(e){}
-            if(r.parentElement) r.parentElement.classList.remove('playing');
-            const otherBtn = r.parentElement ? r.parentElement.querySelector('.radio-btn') : null;
+          if (r !== radio) { r.pause(); if(r.parentElement) r.parentElement.classList.remove('playing'); 
+            const otherBtn = r.parentElement?.querySelector('.radio-btn');
             if(otherBtn) otherBtn.textContent = PLAY_SYM + ' Nghe Radio';
           }
         });
-        // dừng audio nhạc
         musicPlayers.forEach(a => a.pause());
 
-        // phát radio hiện tại
         radio.play().then(() => {
           box.classList.add('playing');
           btn.textContent = STOP_SYM + ' Dừng Radio';
-        }).catch(err => {
-          console.warn('Không thể play radio:', err);
-          // hiển thị lỗi nhẹ cho user
-          btn.textContent = PLAY_SYM + ' Nghe Radio';
-        });
+        }).catch(()=>{ btn.textContent = PLAY_SYM + ' Nghe Radio'; });
       } else {
-        radio.pause();
-        try { radio.currentTime = 0; } catch(e){}
-        box.classList.remove('playing');
+        radio.pause(); box.classList.remove('playing');
         btn.textContent = PLAY_SYM + ' Nghe Radio';
       }
     }
-
-    // Xóa tham số URL nếu có (giữ sạch)
-    if (window.location.search) {
-      const cleanURL = window.location.origin + window.location.pathname;
-      window.history.replaceState({}, document.title, cleanURL);
-    }
   </script>
 
-  <!-- Logo marquee -->
   <div class="logo-marquee">
     <div class="marquee-track">
       <img src="https://raw.githubusercontent.com/nhut990/files/refs/heads/main/Logo_minhnhut.png" alt="logo">
