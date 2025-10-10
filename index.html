@@ -1,8 +1,9 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="vi">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="description" content="Minh Nhựt Audio - nghe nhạc và radio trực tuyến" />
   <title>Minh Nhựt Audio</title>
   <link rel="icon" href="https://raw.githubusercontent.com/nhut990/files/refs/heads/main/hinh/Logo_minhnhut.png">
   <style>
@@ -53,13 +54,73 @@
       .radio-box{ width:90% }
       .radio-btn{ font-size:12px; padding:5px 10px }
     }
+
+    /* small helper for fallback messages */
+    .hint { font-size:12px; color:#333; margin-top:6px; }
+
+    /* CONTACT PANEL (inline under "Đặng Minh Nhựt") */
+    #contact-widget { width:100%; display:flex; justify-content:center; margin-top:12px; }
+    #contact-panel {
+      width: min(780px, 92vw); max-width:420px;
+      background: linear-gradient(180deg, rgba(6,14,23,0.98), rgba(9,20,34,0.98));
+      color: #e8eef6; border-radius: 12px; padding: 16px; margin-top: 10px;
+      box-shadow: 0 18px 48px rgba(3,8,20,0.7);
+      border: 1px solid rgba(255,255,255,0.03);
+      position: relative;
+    }
+    #contact-panel h3 { margin: 2px 0 10px 0; font-size:18px; color:#fff; }
+
+    /* Form layout */
+    #contact-form { display: flex; flex-direction: column; gap:10px; }
+    .row { display:flex; gap:8px; }
+    .row input { flex:1; }
+
+    input, textarea {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.03);
+      color: #dbeaf6;
+      padding: 10px 12px;
+      border-radius: 10px;
+      outline: none;
+      font-size: 14px;
+      transition: box-shadow .12s, border-color .12s;
+      width:100%;
+      box-sizing:border-box;
+    }
+    input::placeholder, textarea::placeholder { color: rgba(235,245,255,0.35); }
+    input:focus, textarea:focus { border-color: rgba(0,210,230,0.9); box-shadow: 0 6px 18px rgba(0,210,230,0.06); }
+
+    textarea { resize: vertical; min-height:76px; max-height:160px; }
+
+    .actions { display:flex; gap:12px; align-items:center; margin-top:6px; }
+    .send {
+      background: linear-gradient(180deg,#06e6ff,#00b8d9);
+      color: #06202a; padding:10px 18px; border-radius:12px; border:none; cursor:pointer; font-weight:700;
+      box-shadow: 0 6px 18px rgba(0,184,217,0.18), inset 0 -2px 0 rgba(0,0,0,0.05);
+    }
+    .send[disabled]{ opacity:0.6; cursor:default; transform:none; }
+    .reset {
+      background: rgba(255,255,255,0.02); color:#bcd3ea; border:1px solid rgba(255,255,255,0.03);
+      padding:8px 14px; border-radius:10px; cursor:pointer;
+    }
+
+    .feedback { font-size:13px; color:#bcefe8; margin-top:6px; }
+
+    /* visually-hidden helper */
+    .visually-hidden { position:absolute!important; height:1px; width:1px; overflow:hidden; clip:rect(1px,1px,1px,1px); white-space:nowrap }
+
+    @media (max-width:420px){
+      #contact-panel { padding:12px; border-radius:10px; max-width:94vw; }
+      .row { flex-direction: column; }
+    }
   </style>
 
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 </head>
 <body>
   <div id="device-info" class="center" style="margin-bottom:6px;"></div>
-  <div id="clock" class="center" style="font-size:18px; font-weight:bold; color:#111;"></div>
+  <!-- role=status và aria-live giúp screen-reader cập nhật (clock) -->
+  <div id="clock" class="center" role="status" aria-live="polite" style="font-size:18px; font-weight:bold; color:#111;"></div>
 
   <script>
     function detectDevice(){
@@ -108,6 +169,7 @@
     <div style="font-size:16px;font-weight:700;color:#333;margin-bottom:8px;">Nhạc Thiền Tĩnh Tâm An Lạc</div>
     <audio controls preload="none">
       <source src="https://github.com/nhut990/files/raw/refs/heads/main/music/nhac%20thien%20tinh%20tam.mp3" type="audio/mpeg">
+      Trình duyệt của bạn không hỗ trợ thẻ audio.
     </audio>
   </div>
 
@@ -169,37 +231,69 @@
   <!-- ================= RADIO ================= -->
   <div class="radio-box" id="radio-box-1">
     <div class="radio-title">RADIO FM_99.9MHz</div>
-    <button class="radio-btn" onclick="playRadio('radio-1','radio-box-1',this)"></button>
+    <button type="button" class="radio-btn" data-radio="radio-1" aria-pressed="false" aria-label="Nghe Radio FM 99.9"></button>
     <audio id="radio-1" preload="none"></audio>
-    <div class="wave"><span></span><span></span><span></span><span></span><span></span></div>
+    <div class="wave" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
+    <div class="hint" data-hint-for="radio-1"></div>
   </div>
 
   <div class="radio-box" id="radio-box-4">
     <div class="radio-title">RADIO FM_87.7MHz</div>
-    <button class="radio-btn" onclick="playRadio('radio-4','radio-box-4',this)"></button>
+    <button type="button" class="radio-btn" data-radio="radio-4" aria-pressed="false" aria-label="Nghe Radio FM 87.7"></button>
     <audio id="radio-4" preload="none"></audio>
-    <div class="wave"><span></span><span></span><span></span><span></span><span></span></div>
+    <div class="wave" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
+    <div class="hint" data-hint-for="radio-4"></div>
   </div>
 
   <div class="radio-box" id="radio-box-2">
     <div class="radio-title">RADIO FM_95.6MHz</div>
-    <button class="radio-btn" onclick="playRadio('radio-2','radio-box-2',this)"></button>
+    <button type="button" class="radio-btn" data-radio="radio-2" aria-pressed="false" aria-label="Nghe Radio FM 95.6"></button>
     <audio id="radio-2" preload="none"></audio>
-    <div class="wave"><span></span><span></span><span></span><span></span><span></span></div>
+    <div class="wave" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
+    <div class="hint" data-hint-for="radio-2"></div>
   </div>
 
   <div class="radio-box" id="radio-box-3">
     <div class="radio-title">RADIO AM_610KHz</div>
-    <button class="radio-btn" onclick="playRadio('radio-3','radio-box-3',this)"></button>
+    <button type="button" class="radio-btn" data-radio="radio-3" aria-pressed="false" aria-label="Nghe Radio AM 610"></button>
     <audio id="radio-3" preload="none"></audio>
-    <div class="wave"><span></span><span></span><span></span><span></span><span></span></div>
+    <div class="wave" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
+    <div class="hint" data-hint-for="radio-3"></div>
   </div>
 
   <div class="center" style="margin-top:10px;">
     <span style="color:red;font-size:20px;font-weight:bold;animation:blink 1s infinite;">Đặng Minh Nhựt</span>
   </div>
 
+  <!-- ===== CONTACT PANEL (luôn hiển thị dưới "Đặng Minh Nhựt") ===== -->
+  <div id="contact-widget">
+    <aside id="contact-panel" role="region" aria-labelledby="contact-title">
+      <h3 id="contact-title">Liên hệ nhanh</h3>
+
+      <form id="contact-form" action="https://formspree.io/f/xanppjvw" method="POST">
+        <div class="row">
+          <label class="visually-hidden" for="c-name">Tên</label>
+          <input id="c-name" name="name" type="text" placeholder="Tên của bạn" required />
+          <label class="visually-hidden" for="c-email">Email</label>
+          <input id="c-email" name="email" type="email" placeholder="Email" required />
+        </div>
+
+        <label class="visually-hidden" for="c-message">Tin nhắn</label>
+        <textarea id="c-message" name="message" rows="4" placeholder="Tin nhắn..." required></textarea>
+
+        <div class="actions">
+          <button type="submit" id="c-send" class="send">Gửi</button>
+          <button type="reset" class="reset">Xóa</button>
+        </div>
+
+        <div id="c-feedback" role="status" aria-live="polite" class="feedback" hidden></div>
+      </form>
+    </aside>
+  </div>
+  <!-- ===== END CONTACT PANEL ===== -->
+
   <script>
+    // mapping radioId -> stream url
     const radioStreams = {
       "radio-1": "https://strm.voh.com.vn/radio/channel3/playlist.m3u8",
       "radio-4": "https://strm.voh.com.vn/radio/channel5/playlist.m3u8",
@@ -207,66 +301,181 @@
       "radio-3": "https://strm.voh.com.vn/radio/channel2/playlist.m3u8"
     };
 
-    Object.entries(radioStreams).forEach(([id, src]) => {
-      const audio = document.getElementById(id);
-      if (window.Hls && Hls.isSupported()) {
-        const hls = new Hls();
-        hls.loadSource(src);
-        hls.attachMedia(audio);
-      } else if (audio.canPlayType('application/vnd.apple.mpegurl')) {
-        audio.src = src;
-      } else {
-        audio.src = src;
-      }
-    });
+    // store Hls instances so we can destroy them later
+    const hlsInstances = {};
 
+    // symbols
     const PLAY_SYM = '\u25B6';
     const STOP_SYM = '\u23F9';
-    document.querySelectorAll('.radio-btn').forEach(btn => btn.textContent = PLAY_SYM + ' Nghe Radio');
+    // initialize button labels
+    document.querySelectorAll('.radio-btn').forEach(btn => {
+      btn.textContent = PLAY_SYM + ' Nghe Radio';
+      btn.setAttribute('aria-pressed','false');
+    });
 
+    // audio players for local tracks (non-radio)
     const musicPlayers = Array.from(document.querySelectorAll("audio:not([id^='radio'])"));
     musicPlayers.forEach((a, idx) => {
       a.addEventListener('play', () => {
-        document.querySelectorAll("audio[id^='radio']").forEach(r => r.pause());
+        // pause all radios when a music track plays
+        document.querySelectorAll("audio[id^='radio']").forEach(r => {
+          r.pause();
+          const p = r.parentElement;
+          if(p) p.classList.remove('playing');
+          const otherBtn = p?.querySelector('.radio-btn');
+          if(otherBtn) { otherBtn.textContent = PLAY_SYM + ' Nghe Radio'; otherBtn.setAttribute('aria-pressed','false'); }
+          // destroy Hls instance for that radio to free memory
+          const rid = r.id;
+          if(hlsInstances[rid]){ try{ hlsInstances[rid].destroy(); }catch(e){} delete hlsInstances[rid]; }
+        });
+        // pause other music tracks
         musicPlayers.forEach(o => { if(o !== a) o.pause(); });
       });
 
       a.addEventListener('ended', () => {
         const next = musicPlayers[idx+1];
         if(next){
-          next.play().catch(()=>{}); // phát tiếp bài sau
+          next.play().catch(()=>{});
         }
       });
     });
 
-    function playRadio(radioId, boxId, btn){
+    // helper to show hint messages under each radio
+    function setHintFor(radioId, message){
+      const el = document.querySelector(`[data-hint-for="${radioId}"]`);
+      if(el) el.textContent = message || '';
+    }
+
+    // main play/pause for radio with on-demand Hls creation and destroy on pause
+    async function playRadio(radioId, boxEl, btn){
       const radio = document.getElementById(radioId);
-      const box = document.getElementById(boxId);
 
       if (radio.paused) {
         document.querySelectorAll("audio[id^='radio']").forEach(r => {
-          if (r !== radio) { r.pause(); if(r.parentElement) r.parentElement.classList.remove('playing'); 
-            const otherBtn = r.parentElement?.querySelector('.radio-btn');
-            if(otherBtn) otherBtn.textContent = PLAY_SYM + ' Nghe Radio';
+          if (r !== radio) {
+            r.pause();
+            const p = r.parentElement;
+            if(p) p.classList.remove('playing');
+            const otherBtn = p?.querySelector('.radio-btn');
+            if(otherBtn){
+              otherBtn.textContent = PLAY_SYM + ' Nghe Radio';
+              otherBtn.setAttribute('aria-pressed','false');
+            }
+            const rid = r.id;
+            if(hlsInstances[rid]){ try{ hlsInstances[rid].destroy(); }catch(e){} delete hlsInstances[rid]; }
           }
         });
+
         musicPlayers.forEach(a => a.pause());
 
-        radio.play().then(() => {
-          box.classList.add('playing');
-          btn.textContent = STOP_SYM + ' Dừng Radio';
-        }).catch(()=>{ btn.textContent = PLAY_SYM + ' Nghe Radio'; });
+        const src = radioStreams[radioId];
+        setHintFor(radioId, 'Đang kết nối...');
+
+        try {
+          if (window.Hls && Hls.isSupported()) {
+            if(!hlsInstances[radioId]){
+              const hls = new Hls();
+              hlsInstances[radioId] = hls;
+              radio.crossOrigin = "anonymous";
+              hls.loadSource(src);
+              hls.attachMedia(radio);
+            }
+            await radio.play();
+            boxEl.classList.add('playing');
+            btn.textContent = STOP_SYM + ' Dừng Radio';
+            btn.setAttribute('aria-pressed','true');
+            setHintFor(radioId, '');
+          } else if (radio.canPlayType('application/vnd.apple.mpegurl')) {
+            radio.src = src;
+            radio.crossOrigin = "anonymous";
+            await radio.play();
+            boxEl.classList.add('playing');
+            btn.textContent = STOP_SYM + ' Dừng Radio';
+            btn.setAttribute('aria-pressed','true');
+            setHintFor(radioId, '');
+          } else {
+            setHintFor(radioId, 'Trình duyệt không hỗ trợ HLS. Vui lòng thử Safari hoặc dùng trình duyệt hỗ trợ MSE.');
+            btn.textContent = PLAY_SYM + ' Nghe Radio';
+            btn.setAttribute('aria-pressed','false');
+          }
+        } catch (err) {
+          console.error('Radio play error', err);
+          setHintFor(radioId, 'Không thể phát. Kiểm tra kết nối hoặc CORS trên server luồng.');
+          btn.textContent = PLAY_SYM + ' Nghe Radio';
+          btn.setAttribute('aria-pressed','false');
+          if(hlsInstances[radioId]){ try{ hlsInstances[radioId].destroy(); }catch(e){} delete hlsInstances[radioId]; }
+        }
       } else {
-        radio.pause(); box.classList.remove('playing');
+        radio.pause();
+        boxEl.classList.remove('playing');
         btn.textContent = PLAY_SYM + ' Nghe Radio';
+        btn.setAttribute('aria-pressed','false');
+        if(hlsInstances[radioId]){ try{ hlsInstances[radioId].destroy(); }catch(e){} delete hlsInstances[radioId]; }
+        setHintFor(radioId, '');
       }
     }
+
+    // wire up click handlers on radio buttons
+    document.querySelectorAll('.radio-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const radioId = btn.getAttribute('data-radio');
+        const boxId = 'radio-box-' + radioId.split('-')[1]; // matches your ids
+        const box = document.getElementById(boxId);
+        if(!radioId || !box) return;
+        playRadio(radioId, box, btn);
+      });
+    });
+
+    // optional: unload handler to destroy remaining hls instances
+    window.addEventListener('beforeunload', () => {
+      Object.values(hlsInstances).forEach(h => { try{ h.destroy(); }catch(e){} });
+    });
+  </script>
+
+  <!-- Contact form script (keeps user on page and posts to Formspree) -->
+  <script>
+    (function(){
+      const form = document.getElementById('contact-form');
+      const sendBtn = document.getElementById('c-send');
+      const feedback = document.getElementById('c-feedback');
+
+      form.addEventListener('submit', function(e){
+        e.preventDefault();
+        sendBtn.disabled = true;
+        sendBtn.textContent = 'Đang gửi...';
+        feedback.hidden = false;
+        feedback.textContent = '';
+
+        const data = new FormData(form);
+
+        fetch(form.action, {
+          method: form.method,
+          headers: { 'Accept': 'application/json' },
+          body: data
+        }).then(response => {
+          if (response.ok) {
+            feedback.textContent = 'Gửi thành công. Cảm ơn bạn!';
+            form.reset();
+          } else {
+            return response.json().then(err => {
+              feedback.textContent = (err?.error) ? 'Lỗi: ' + err.error : 'Không thể gửi. Thử lại sau.';
+            });
+          }
+        }).catch(err=>{
+          console.error(err);
+          feedback.textContent = 'Lỗi kết nối. Vui lòng thử lại.';
+        }).finally(()=>{
+          sendBtn.disabled = false;
+          sendBtn.textContent = 'Gửi';
+        });
+      });
+    })();
   </script>
 
   <div class="logo-marquee">
     <div class="marquee-track">
-      <img src="https://raw.githubusercontent.com/nhut990/files/refs/heads/main/hinh/Logo_minhnhut.png" alt="logo">
-      <img src="https://raw.githubusercontent.com/nhut990/files/refs/heads/main/hinh/Logo_minhnhut.png" alt="logo">
+      <img loading="lazy" src="https://raw.githubusercontent.com/nhut990/files/refs/heads/main/hinh/Logo_minhnhut.png" alt="logo minh nhut">
+      <img loading="lazy" src="https://raw.githubusercontent.com/nhut990/files/refs/heads/main/hinh/Logo_minhnhut.png" alt="logo minh nhut">
     </div>
   </div>
 
