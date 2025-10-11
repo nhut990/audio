@@ -58,60 +58,21 @@
     /* small helper for fallback messages */
     .hint { font-size:12px; color:#333; margin-top:6px; }
 
-    /* CONTACT PANEL (inline under "Đặng Minh Nhựt") */
+    /* CONTACT PANEL (replaced by Telegram form) */
     #contact-widget { width:100%; display:flex; justify-content:center; margin-top:12px; }
-    #contact-panel {
-      width: min(780px, 92vw); max-width:420px;
-      background: linear-gradient(180deg, rgba(6,14,23,0.98), rgba(9,20,34,0.98));
-      color: #e8eef6; border-radius: 12px; padding: 16px; margin-top: 10px;
-      box-shadow: 0 18px 48px rgba(3,8,20,0.7);
-      border: 1px solid rgba(255,255,255,0.03);
-      position: relative;
-    }
-    #contact-panel h3 { margin: 2px 0 10px 0; font-size:18px; color:#fff; }
-
-    /* Form layout */
-    #contact-form { display: flex; flex-direction: column; gap:10px; }
-    .row { display:flex; gap:8px; }
-    .row input { flex:1; }
-
-    input, textarea {
-      background: rgba(255,255,255,0.02);
-      border: 1px solid rgba(255,255,255,0.03);
-      color: #dbeaf6;
-      padding: 10px 12px;
-      border-radius: 10px;
-      outline: none;
-      font-size: 14px;
-      transition: box-shadow .12s, border-color .12s;
-      width:100%;
-      box-sizing:border-box;
-    }
-    input::placeholder, textarea::placeholder { color: rgba(235,245,255,0.35); }
-    input:focus, textarea:focus { border-color: rgba(0,210,230,0.9); box-shadow: 0 6px 18px rgba(0,210,230,0.06); }
-
-    textarea { resize: vertical; min-height:76px; max-height:160px; }
-
-    .actions { display:flex; gap:12px; align-items:center; margin-top:6px; }
-    .send {
-      background: linear-gradient(180deg,#06e6ff,#00b8d9);
-      color: #06202a; padding:10px 18px; border-radius:12px; border:none; cursor:pointer; font-weight:700;
-      box-shadow: 0 6px 18px rgba(0,184,217,0.18), inset 0 -2px 0 rgba(0,0,0,0.05);
-    }
-    .send[disabled]{ opacity:0.6; cursor:default; transform:none; }
-    .reset {
-      background: rgba(255,255,255,0.02); color:#bcd3ea; border:1px solid rgba(255,255,255,0.03);
-      padding:8px 14px; border-radius:10px; cursor:pointer;
-    }
-
-    .feedback { font-size:13px; color:#bcefe8; margin-top:6px; }
-
-    /* visually-hidden helper */
-    .visually-hidden { position:absolute!important; height:1px; width:1px; overflow:hidden; clip:rect(1px,1px,1px,1px); white-space:nowrap }
+    .contact-form { width: 370px; background: #101820; border-radius: 24px; box-shadow: 0 2px 20px rgba(0,0,0,0.18); padding: 32px 24px; color: #fff; margin: 40px auto; }
+    .contact-form h2 { font-size: 2rem; font-weight: bold; margin-bottom: 24px; }
+    .contact-form input, .contact-form textarea { width: 100%; padding: 14px 18px; margin-bottom: 16px; border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; background: transparent; color: #fff; font-size: 1rem; outline: none; }
+    .contact-form textarea { min-height: 70px; resize: vertical; }
+    .form-actions { display: flex; gap: 16px; justify-content: flex-start; }
+    .send-btn { background: #16e0d3; color: #222; font-size: 1.1rem; padding: 12px 38px; border-radius: 14px; border: none; font-weight: bold; cursor: pointer; transition: background 0.2s; }
+    .send-btn:hover { background: #12c3b2; }
+    .reset-btn { background: #222; color: #fff; font-size: 1.1rem; padding: 12px 38px; border-radius: 14px; border: none; font-weight: bold; cursor: pointer; transition: background 0.2s; }
+    .reset-btn:hover { background: #444; }
+    .notify { margin-top: 18px; color: #16e0d3; font-weight: bold; transition: opacity 1s; opacity: 1; }
 
     @media (max-width:420px){
-      #contact-panel { padding:12px; border-radius:10px; max-width:94vw; }
-      .row { flex-direction: column; }
+      .contact-form { width:96vw; padding:14px; border-radius:10px; }
     }
   </style>
 
@@ -265,32 +226,23 @@
     <span style="color:red;font-size:20px;font-weight:bold;animation:blink 1s infinite;">Đặng Minh Nhựt</span>
   </div>
 
-  <!-- ===== CONTACT PANEL (luôn hiển thị dưới "Đặng Minh Nhựt") ===== -->
+  <!-- ===== TELEGRAM CONTACT FORM (replacing previous contact panel) ===== -->
   <div id="contact-widget">
-    <aside id="contact-panel" role="region" aria-labelledby="contact-title">
-      <h3 id="contact-title">Liên hệ nhanh</h3>
-
-      <form id="contact-form" action="https://formspree.io/f/xanppjvw" method="POST">
-        <div class="row">
-          <label class="visually-hidden" for="c-name">Tên</label>
-          <input id="c-name" name="name" type="text" placeholder="Tên của bạn" required />
-          <label class="visually-hidden" for="c-email">Email</label>
-          <input id="c-email" name="email" type="email" placeholder="Email" required />
+    <div class="contact-form">
+      <h2>Liên hệ nhanh</h2>
+      <form id="contactForm" autocomplete="off" onsubmit="return false;">
+        <input type="text" id="name" placeholder="Tên của bạn" required />
+        <input type="text" id="phone" placeholder="Số điện thoại" required />
+        <textarea id="message" placeholder="Tin nhắn..." required></textarea>
+        <div class="form-actions">
+          <button type="button" class="send-btn" onclick="sendTelegram()">Gửi</button>
+          <button type="reset" class="reset-btn">Xóa</button>
         </div>
-
-        <label class="visually-hidden" for="c-message">Tin nhắn</label>
-        <textarea id="c-message" name="message" rows="4" placeholder="Tin nhắn..." required></textarea>
-
-        <div class="actions">
-          <button type="submit" id="c-send" class="send">Gửi</button>
-          <button type="reset" class="reset">Xóa</button>
-        </div>
-
-        <div id="c-feedback" role="status" aria-live="polite" class="feedback" hidden></div>
+        <div id="notify" class="notify"></div>
       </form>
-    </aside>
+    </div>
   </div>
-  <!-- ===== END CONTACT PANEL ===== -->
+  <!-- ===== END TELEGRAM CONTACT FORM ===== -->
 
   <script>
     // mapping radioId -> stream url
@@ -430,46 +382,60 @@
     window.addEventListener('beforeunload', () => {
       Object.values(hlsInstances).forEach(h => { try{ h.destroy(); }catch(e){} });
     });
-  </script>
 
-  <!-- Contact form script (keeps user on page and posts to Formspree) -->
-  <script>
-    (function(){
-      const form = document.getElementById('contact-form');
-      const sendBtn = document.getElementById('c-send');
-      const feedback = document.getElementById('c-feedback');
+    // ====== TELEGRAM CONTACT FORM SCRIPT ======
+    const TELEGRAM_TOKEN = '8330546629:AAEfSmUvy-96JLxikA6hdDH7MN_bgzrWyd8';
+    const CHAT_ID = '5497131600';
 
-      form.addEventListener('submit', function(e){
-        e.preventDefault();
-        sendBtn.disabled = true;
-        sendBtn.textContent = 'Đang gửi...';
-        feedback.hidden = false;
-        feedback.textContent = '';
+    function sendTelegram() {
+      const name = document.getElementById('name').value.trim();
+      const phone = document.getElementById('phone').value.trim();
+      const message = document.getElementById('message').value.trim();
+      const notify = document.getElementById('notify');
+      if (!name || !phone || !message) {
+        notify.textContent = "Vui lòng nhập đầy đủ thông tin.";
+        notify.style.opacity = "1";
+        notify.style.transition = "";
+        return;
+      }
+      const text = `Khách liên hệ web:\nTên: ${name}\nSĐT: ${phone}\nTin nhắn: ${message}`;
 
-        const data = new FormData(form);
-
-        fetch(form.action, {
-          method: form.method,
-          headers: { 'Accept': 'application/json' },
-          body: data
-        }).then(response => {
-          if (response.ok) {
-            feedback.textContent = 'Gửi thành công. Cảm ơn bạn!';
-            form.reset();
-          } else {
-            return response.json().then(err => {
-              feedback.textContent = (err?.error) ? 'Lỗi: ' + err.error : 'Không thể gửi. Thử lại sau.';
-            });
-          }
-        }).catch(err=>{
-          console.error(err);
-          feedback.textContent = 'Lỗi kết nối. Vui lòng thử lại.';
-        }).finally(()=>{
-          sendBtn.disabled = false;
-          sendBtn.textContent = 'Gửi';
-        });
+      fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          chat_id: CHAT_ID,
+          text: text
+        })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.ok) {
+          notify.textContent = "Đã gửi thông báo thành công!";
+          notify.style.opacity = "1";
+          notify.style.transition = "";
+          document.getElementById('contactForm').reset();
+          setTimeout(() => {
+            notify.style.transition = "opacity 1s";
+            notify.style.opacity = "0";
+          }, 2000);
+          setTimeout(() => {
+            notify.textContent = "";
+            notify.style.transition = "";
+            notify.style.opacity = "1";
+          }, 3000);
+        } else {
+          notify.textContent = "Gửi thất bại: " + (data.description || 'Vui lòng thử lại.');
+          notify.style.opacity = "1";
+          notify.style.transition = "";
+        }
+      })
+      .catch(err => {
+        notify.textContent = "Có lỗi xảy ra: " + err.message;
+        notify.style.opacity = "1";
+        notify.style.transition = "";
       });
-    })();
+    }
   </script>
 
   <div class="logo-marquee">
