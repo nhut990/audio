@@ -80,7 +80,6 @@
 </head>
 <body>
   <div id="device-info" class="center" style="margin-bottom:6px;"></div>
-  <!-- role=status và aria-live giúp screen-reader cập nhật (clock) -->
   <div id="clock" class="center" role="status" aria-live="polite" style="font-size:18px; font-weight:bold; color:#111;"></div>
 
   <script>
@@ -211,6 +210,15 @@
     </audio>
   </div>
 
+  <!-- BÀI HÁT MỚI THÊM DƯỚI ALLA FIGARO -->
+  <div class="center" style="margin-top:10px;">
+    <div style="font-weight:700;margin-bottom:6px;">Ballade Pour Adeline - Richard Clayderman</div>
+    <audio controls preload="none" playsinline>
+      <source src="https://github.com/nhut990/files/raw/refs/heads/main/music/Richard%20Clayderman%20-%20Ballade%20Pour%20Adeline.mp3" type="audio/mpeg">
+    </audio>
+  </div>
+  <!-- HẾT BÀI HÁT MỚI -->
+
   <!-- ================= RADIO ================= -->
   <div class="radio-box" id="radio-box-1">
     <div class="radio-title">RADIO FM_99.9MHz</div>
@@ -291,18 +299,15 @@
     const musicPlayers = Array.from(document.querySelectorAll("audio:not([id^='radio'])"));
     musicPlayers.forEach((a, idx) => {
       a.addEventListener('play', () => {
-        // pause all radios when a music track plays
         document.querySelectorAll("audio[id^='radio']").forEach(r => {
           r.pause();
           const p = r.parentElement;
           if(p) p.classList.remove('playing');
           const otherBtn = p?.querySelector('.radio-btn');
           if(otherBtn) { otherBtn.textContent = PLAY_SYM + ' Nghe Radio'; otherBtn.setAttribute('aria-pressed','false'); }
-          // destroy Hls instance for that radio to free memory
           const rid = r.id;
           if(hlsInstances[rid]){ try{ hlsInstances[rid].destroy(); }catch(e){} delete hlsInstances[rid]; }
         });
-        // pause other music tracks
         musicPlayers.forEach(o => { if(o !== a) o.pause(); });
       });
 
@@ -313,7 +318,6 @@
         }
       });
 
-      // FIX Zalo/Messenger webview: Nếu audio không play được thì load lại rồi play
       a.addEventListener('play', function fixZaloPlay() {
         if (a.paused) {
           a.load();
@@ -323,13 +327,11 @@
       });
     });
 
-    // helper to show hint messages under each radio
     function setHintFor(radioId, message){
       const el = document.querySelector(`[data-hint-for="${radioId}"]`);
       if(el) el.textContent = message || '';
     }
 
-    // main play/pause for radio with on-demand Hls creation and destroy on pause
     async function playRadio(radioId, boxEl, btn){
       const radio = document.getElementById(radioId);
 
@@ -398,18 +400,16 @@
       }
     }
 
-    // wire up click handlers on radio buttons
     document.querySelectorAll('.radio-btn').forEach(btn => {
       btn.addEventListener('click', (e) => {
         const radioId = btn.getAttribute('data-radio');
-        const boxId = 'radio-box-' + radioId.split('-')[1]; // matches your ids
+        const boxId = 'radio-box-' + radioId.split('-')[1];
         const box = document.getElementById(boxId);
         if(!radioId || !box) return;
         playRadio(radioId, box, btn);
       });
     });
 
-    // optional: unload handler to destroy remaining hls instances
     window.addEventListener('beforeunload', () => {
       Object.values(hlsInstances).forEach(h => { try{ h.destroy(); }catch(e){} });
     });
