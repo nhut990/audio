@@ -50,10 +50,8 @@
       .radio-btn{ font-size:12px; padding:5px 10px }
     }
 
-    /* small helper for fallback messages */
     .hint { font-size:12px; color:#333; margin-top:6px; }
 
-    /* CONTACT PANEL (small size and flexible input) */
     #contact-widget { width:100%; display:flex; justify-content:center; margin-top:12px; }
     .contact-form { width: 370px; background: #101820; border-radius: 24px; box-shadow: 0 2px 20px rgba(0,0,0,0.18); padding: 32px 24px; color: #fff; margin: 40px auto; }
     .contact-form.small-form { width: 260px !important; padding: 18px 10px !important; font-size: 15px; }
@@ -73,7 +71,6 @@
       .contact-form.small-form { width:90vw !important; padding:8px !important; }
     }
   </style>
-
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 </head>
 <body>
@@ -122,7 +119,7 @@
     updateClock();
   </script>
 
-  <!-- ======= DANH SÁCH NHẠC ======= -->
+  <!-- ======= DANH SÁCH NHẠC GIỮ NGUYÊN ======= -->
   <div class="center" style="margin-top:10px;">
     <div style="font-size:16px;font-weight:700;color:#333;margin-bottom:8px;">Nhạc Thiền Tĩnh Tâm An Lạc</div>
     <audio controls preload="auto" playsinline>
@@ -283,14 +280,10 @@
       "radio-2": "https://strm.voh.com.vn/radio/channel1/playlist.m3u8",
       "radio-3": "https://strm.voh.com.vn/radio/channel2/playlist.m3u8"
     };
-
-    // store Hls instances so we can destroy them later
     const hlsInstances = {};
-
-    // symbols
     const PLAY_SYM = '\u25B6';
     const STOP_SYM = '\u23F9';
-    // initialize button labels
+
     document.querySelectorAll('.radio-btn').forEach(btn => {
       btn.textContent = PLAY_SYM + ' Nghe Radio';
       btn.setAttribute('aria-pressed','false');
@@ -333,6 +326,15 @@
       if(el) el.textContent = message || '';
     }
 
+    // Phát hiện iOS/safari để dùng native HLS
+    function isIOSorSafari() {
+      var ua = navigator.userAgent;
+      var isIOS = /iPhone|iPad|iPod/i.test(ua);
+      var isSafari = /^((?!chrome|android).)*safari/i.test(ua);
+      return isIOS || isSafari;
+    }
+    const isIOSOrSafari = isIOSorSafari();
+
     async function playRadio(radioId, boxEl, btn){
       const radio = document.getElementById(radioId);
 
@@ -358,7 +360,17 @@
         setHintFor(radioId, 'Đang kết nối...');
 
         try {
-          if (window.Hls && Hls.isSupported()) {
+          if (isIOSOrSafari && radio.canPlayType('application/vnd.apple.mpegurl')) {
+            // iOS & Safari: dùng native HLS
+            radio.src = src;
+            radio.crossOrigin = "anonymous";
+            radio.load();
+            await radio.play();
+            boxEl.classList.add('playing');
+            btn.textContent = STOP_SYM + ' Dừng Radio';
+            btn.setAttribute('aria-pressed','true');
+            setHintFor(radioId, '');
+          } else if (window.Hls && Hls.isSupported()) {
             if(!hlsInstances[radioId]){
               const hls = new Hls();
               hlsInstances[radioId] = hls;
@@ -371,16 +383,8 @@
             btn.textContent = STOP_SYM + ' Dừng Radio';
             btn.setAttribute('aria-pressed','true');
             setHintFor(radioId, '');
-          } else if (radio.canPlayType('application/vnd.apple.mpegurl')) {
-            radio.src = src;
-            radio.crossOrigin = "anonymous";
-            await radio.play();
-            boxEl.classList.add('playing');
-            btn.textContent = STOP_SYM + ' Dừng Radio';
-            btn.setAttribute('aria-pressed','true');
-            setHintFor(radioId, '');
           } else {
-            setHintFor(radioId, 'Trình duyệt không hỗ trợ HLS. Vui lòng thử Safari hoặc dùng trình duyệt hỗ trợ MSE.');
+            setHintFor(radioId, 'Trình duyệt không hỗ trợ HLS. Vui lòng thử Safari hoặc trình duyệt hỗ trợ MSE.');
             btn.textContent = PLAY_SYM + ' Nghe Radio';
             btn.setAttribute('aria-pressed','false');
           }
@@ -415,7 +419,7 @@
       Object.values(hlsInstances).forEach(h => { try{ h.destroy(); }catch(e){} });
     });
 
-    // ====== TELEGRAM CONTACT FORM SCRIPT ======
+    // TELEGRAM CONTACT FORM SCRIPT
     const TELEGRAM_TOKEN = '8330546629:AAEfSmUvy-96JLxikA6hdDH7MN_bgzrWyd8';
     const CHAT_ID = '5497131600';
 
