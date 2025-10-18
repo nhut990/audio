@@ -11,6 +11,7 @@
     body{font-family:Arial, Helvetica, sans-serif; color:#222; margin:0; padding:20px 10px;}
     #clock{font-family:monospace; letter-spacing:2px; text-align:center; margin-bottom:10px;}
     .center { text-align:center; }
+
     .radio-box {
       width: 220px;
       margin: 15px auto;
@@ -26,6 +27,7 @@
       background:#d32f2f;color:#fff;border:none;padding:6px 12px;border-radius:6px;cursor:pointer;font-size:13px;
     }
     .radio-btn:hover{ background:#b71c1c; }
+
     .wave {
       display:flex;justify-content:center;align-items:flex-end;gap:3px;height:18px;margin-top:6px;
     }
@@ -35,17 +37,23 @@
     .wave span:nth-child(5){animation-delay:0.8s}
     @keyframes waveAnim { 0%,100%{height:4px}50%{height:14px} }
     .radio-box:not(.playing) .wave { opacity:0; transition:opacity .2s; }
-    audio, video { width:90%; max-width:640px; margin:8px auto; display:block; }
-    video.radio-fallback { background:#000; }
+
+    audio { width:90%; max-width:640px; margin:8px auto; display:block; }
+
     footer {
       background: linear-gradient(135deg, #00c6ff, #0072ff);
       padding: 15px 0; text-align:center; color:white; font-size:14px; margin-top:18px;
     }
+
     @media (max-width:500px){
       .radio-box{ width:90% }
       .radio-btn{ font-size:12px; padding:5px 10px }
     }
+
+    /* small helper for fallback messages */
     .hint { font-size:12px; color:#333; margin-top:6px; }
+
+    /* CONTACT PANEL (small size and flexible input) */
     #contact-widget { width:100%; display:flex; justify-content:center; margin-top:12px; }
     .contact-form { width: 370px; background: #101820; border-radius: 24px; box-shadow: 0 2px 20px rgba(0,0,0,0.18); padding: 32px 24px; color: #fff; margin: 40px auto; }
     .contact-form.small-form { width: 260px !important; padding: 18px 10px !important; font-size: 15px; }
@@ -59,20 +67,24 @@
     .reset-btn { background: #222; color: #fff; font-size: 1.1rem; padding: 12px 38px; border-radius: 14px; border: none; font-weight: bold; cursor: pointer; transition: background 0.2s; }
     .reset-btn:hover { background: #444; }
     .notify { margin-top: 18px; color: #16e0d3; font-weight: bold; transition: opacity 1s; opacity: 1; }
+
     @media (max-width:420px){
       .contact-form { width:96vw; padding:14px; border-radius:10px; }
       .contact-form.small-form { width:90vw !important; padding:8px !important; }
     }
   </style>
+
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 </head>
 <body>
   <div id="device-info" class="center" style="margin-bottom:6px;"></div>
   <div id="clock" class="center" role="status" aria-live="polite" style="font-size:18px; font-weight:bold; color:#111;"></div>
+
   <script>
     function detectDevice(){
       let ua = navigator.userAgent;
       let os="Không xác định", device="Không rõ thiết bị", version="";
+
       if(/iPhone|iPad|iPod/i.test(ua)){
         os="iOS"; device = /iPad/i.test(ua) ? "iPad" : "iPhone";
         let match = ua.match(/OS (\d+[_\.\d]*) like Mac OS X/);
@@ -93,8 +105,10 @@
         let match = ua.match(/Mac OS X (\d+[_\.\d]*)/);
         if(match) version = " " + match[1].replace(/_/g,'.');
       }
+
       document.getElementById('device-info').innerHTML = `<b>${device}</b> - <b>${os}${version}</b>`;
     }
+
     function updateClock(){
       const now=new Date();
       const h=String(now.getHours()).padStart(2,'0');
@@ -102,10 +116,13 @@
       const s=String(now.getSeconds()).padStart(2,'0');
       document.getElementById('clock').innerHTML = `<span style="color:#00cc66">${h}:${m}</span> <span style="color:red">${s}</span>`;
     }
+
     detectDevice();
-    setInterval(updateClock,1000); updateClock();
+    setInterval(updateClock,1000);
+    updateClock();
   </script>
-  <!-- ======= DANH SÁCH NHẠC GIỮ NGUYÊN ======= -->
+
+  <!-- ======= DANH SÁCH NHẠC ======= -->
   <div class="center" style="margin-top:10px;">
     <div style="font-size:16px;font-weight:700;color:#333;margin-bottom:8px;">Nhạc Thiền Tĩnh Tâm An Lạc</div>
     <audio controls preload="auto" playsinline>
@@ -113,79 +130,94 @@
       Trình duyệt của bạn không hỗ trợ thẻ audio.
     </audio>
   </div>
+
   <div class="center" style="margin-top:10px;">
     <div style="font-weight:700;margin-bottom:6px;">The Moment - Kenny G</div>
     <audio controls preload="none" playsinline>
       <source src="https://github.com/nhut990/files/raw/refs/heads/main/music/Kenny%20G%20-%20The%20Moment.mp3" type="audio/mpeg">
     </audio>
   </div>
+
   <div class="center" style="margin-top:10px;">
     <div style="font-weight:700;margin-bottom:6px;">Toccata - Paul Mauriat</div>
     <audio controls preload="none" playsinline>
       <source src="https://github.com/nhut990/files/raw/refs/heads/main/music/Toccata%20-%20Paul%20Mauriat%20-%20YouTube.mp3" type="audio/mpeg">
     </audio>
   </div>
+
   <div class="center" style="margin-top:10px;">
     <div style="font-weight:700;margin-bottom:6px;">Hungarian Sonata - Richard Clayderman</div>
     <audio controls preload="none" playsinline>
       <source src="https://github.com/nhut990/files/raw/refs/heads/main/music/Hungarian%20Sonata%20-%20Richard%20Clayderman%20-%20YouTube.mp3" type="audio/mpeg">
     </audio>
   </div>
+
   <div class="center" style="margin-top:10px;">
     <div style="font-weight:700;margin-bottom:6px;">Amor De Mis Amores - Paul Mauriat</div>
     <audio controls preload="none" playsinline>
       <source src="https://github.com/nhut990/files/raw/refs/heads/main/music/Amor%20De%20Mis%20Amores%20-%20Paul%20Mauriat%20-%20YouTube.mp3" type="audio/mpeg">
     </audio>
   </div>
+
   <div class="center" style="margin-top:10px;">
     <div style="font-weight:700;margin-bottom:6px;">A Comme Amour - Richard Clayderman</div>
     <audio controls preload="none" playsinline>
       <source src="https://github.com/nhut990/files/raw/refs/heads/main/music/A%20Comme%20Amour%20-%20Richard%20Clayderman%20-%20YouTube.mp3" type="audio/mpeg">
     </audio>
   </div>
+
   <div class="center" style="margin-top:10px;">
     <div style="font-weight:700;margin-bottom:6px;">La Isla Bonita - Acoustic Guitar</div>
     <audio controls preload="none" playsinline>
       <source src="https://github.com/nhut990/files/raw/refs/heads/main/music/LaIslaBonita-AcounticGuitar.mp3" type="audio/mpeg">
     </audio>
   </div>
+
   <div class="center" style="margin-top:10px;">
     <div style="font-weight:700;margin-bottom:6px;">Mariage d’Amour - Richard Clayderman</div>
     <audio controls preload="none" playsinline>
       <source src="https://github.com/nhut990/files/raw/refs/heads/main/music/Mariage%20d'amour%20-%20Richard%20Clayderman%20-%20YouTube.mp3" type="audio/mpeg">
     </audio>
   </div>
+
   <div class="center" style="margin-top:10px;">
     <div style="font-weight:700;margin-bottom:6px;">El Bimbo - Paul Mauriat</div>
     <audio controls preload="none" playsinline>
       <source src="https://github.com/nhut990/files/raw/refs/heads/main/music/El%20Bimbo%20-%20Paul%20Mauriat%20-%20YouTube.mp3" type="audio/mpeg">
     </audio>
   </div>
+
   <div class="center" style="margin-top:10px;">
     <div style="font-weight:700;margin-bottom:6px;">Lady Di - Richard Clayderman</div>
     <audio controls preload="none" playsinline>
       <source src="https://github.com/nhut990/files/raw/refs/heads/main/music/Richard%20Clayderman%20-%20Lady%20Di%20(Official%20Video)%20-%20YouTube.mp3" type="audio/mpeg">
     </audio>
   </div>
+
   <div class="center" style="margin-top:10px;">
     <div style="font-weight:700;margin-bottom:6px;">Diva – Nicholas De Angeils</div>
     <audio controls preload="none" playsinline>
       <source src="https://github.com/nhut990/files/raw/refs/heads/main/music/Diva%20-%20Nicholas%20De%20Angeils%20-%20YouTube%20(1).mp3" type="audio/mpeg">
     </audio>
   </div>
+
   <div class="center" style="margin-top:10px;">
     <div style="font-weight:700;margin-bottom:6px;">Alla Figaro - Paul Mauriat</div>
     <audio controls preload="none" playsinline>
       <source src="https://github.com/nhut990/files/raw/refs/heads/main/music/Alla%20Figaro%20-%20Paul%20Mauriat%20-%20YouTube.mp3" type="audio/mpeg">
     </audio>
   </div>
+
+  <!-- BÀI HÁT MỚI THÊM DƯỚI ALLA FIGARO -->
   <div class="center" style="margin-top:10px;">
     <div style="font-weight:700;margin-bottom:6px;">Ballade Pour Adeline - Richard Clayderman</div>
     <audio controls preload="none" playsinline>
       <source src="https://github.com/nhut990/files/raw/refs/heads/main/music/Richard%20Clayderman%20-%20Ballade%20Pour%20Adeline.mp3" type="audio/mpeg">
     </audio>
   </div>
-  <!-- RADIO -->
+  <!-- HẾT BÀI HÁT MỚI -->
+
+  <!-- ================= RADIO ================= -->
   <div class="radio-box" id="radio-box-1">
     <div class="radio-title">RADIO FM_99.9MHz</div>
     <button type="button" class="radio-btn" data-radio="radio-1" aria-pressed="false" aria-label="Nghe Radio FM 99.9"></button>
@@ -193,6 +225,7 @@
     <div class="wave" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
     <div class="hint" data-hint-for="radio-1"></div>
   </div>
+
   <div class="radio-box" id="radio-box-4">
     <div class="radio-title">RADIO FM_87.7MHz</div>
     <button type="button" class="radio-btn" data-radio="radio-4" aria-pressed="false" aria-label="Nghe Radio FM 87.7"></button>
@@ -200,6 +233,7 @@
     <div class="wave" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
     <div class="hint" data-hint-for="radio-4"></div>
   </div>
+
   <div class="radio-box" id="radio-box-2">
     <div class="radio-title">RADIO FM_95.6MHz</div>
     <button type="button" class="radio-btn" data-radio="radio-2" aria-pressed="false" aria-label="Nghe Radio FM 95.6"></button>
@@ -207,6 +241,7 @@
     <div class="wave" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
     <div class="hint" data-hint-for="radio-2"></div>
   </div>
+
   <div class="radio-box" id="radio-box-3">
     <div class="radio-title">RADIO AM_610KHz</div>
     <button type="button" class="radio-btn" data-radio="radio-3" aria-pressed="false" aria-label="Nghe Radio AM 610"></button>
@@ -214,10 +249,12 @@
     <div class="wave" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
     <div class="hint" data-hint-for="radio-3"></div>
   </div>
+
   <div class="center" style="margin-top:10px;">
     <span style="color:red;font-size:20px;font-weight:bold;animation:blink 1s infinite;">Đặng Minh Nhựt</span>
   </div>
-  <!-- ===== TELEGRAM CONTACT FORM ===== -->
+
+  <!-- ===== TELEGRAM CONTACT FORM (replacing previous contact panel) ===== -->
   <div id="contact-widget">
     <div class="contact-form small-form">
       <h2>Liên hệ nhanh</h2>
@@ -236,6 +273,8 @@
       </form>
     </div>
   </div>
+  <!-- ===== END TELEGRAM CONTACT FORM ===== -->
+
   <script>
     // mapping radioId -> stream url
     const radioStreams = {
@@ -244,31 +283,42 @@
       "radio-2": "https://strm.voh.com.vn/radio/channel1/playlist.m3u8",
       "radio-3": "https://strm.voh.com.vn/radio/channel2/playlist.m3u8"
     };
+
+    // store Hls instances so we can destroy them later
     const hlsInstances = {};
+
+    // symbols
     const PLAY_SYM = '\u25B6';
     const STOP_SYM = '\u23F9';
+    // initialize button labels
     document.querySelectorAll('.radio-btn').forEach(btn => {
       btn.textContent = PLAY_SYM + ' Nghe Radio';
       btn.setAttribute('aria-pressed','false');
     });
+
+    // audio players for local tracks (non-radio)
     const musicPlayers = Array.from(document.querySelectorAll("audio:not([id^='radio'])"));
     musicPlayers.forEach((a, idx) => {
       a.addEventListener('play', () => {
-        document.querySelectorAll("audio[id^='radio'],video.radio-fallback").forEach(r => {
+        document.querySelectorAll("audio[id^='radio']").forEach(r => {
           r.pause();
           const p = r.parentElement;
           if(p) p.classList.remove('playing');
           const otherBtn = p?.querySelector('.radio-btn');
           if(otherBtn) { otherBtn.textContent = PLAY_SYM + ' Nghe Radio'; otherBtn.setAttribute('aria-pressed','false'); }
-          const rid = r.id.replace("video-",'');
+          const rid = r.id;
           if(hlsInstances[rid]){ try{ hlsInstances[rid].destroy(); }catch(e){} delete hlsInstances[rid]; }
         });
         musicPlayers.forEach(o => { if(o !== a) o.pause(); });
       });
+
       a.addEventListener('ended', () => {
         const next = musicPlayers[idx+1];
-        if(next){ next.play().catch(()=>{}); }
+        if(next){
+          next.play().catch(()=>{});
+        }
       });
+
       a.addEventListener('play', function fixZaloPlay() {
         if (a.paused) {
           a.load();
@@ -277,49 +327,17 @@
         a.removeEventListener('play', fixZaloPlay);
       });
     });
+
     function setHintFor(radioId, message){
       const el = document.querySelector(`[data-hint-for="${radioId}"]`);
       if(el) el.textContent = message || '';
     }
-    function isIOS10_3_3() {
-      var ua = navigator.userAgent;
-      var m = ua.match(/OS (\d+)[._](\d+)[._]?(\d+)?/);
-      if (!/iPhone|iPad|iPod/i.test(ua) || !m) return false;
-      var major = parseInt(m[1]), minor = parseInt(m[2]), patch = parseInt(m[3] || "0");
-      return major === 10 && minor === 3 && patch === 3;
-    }
-    function isIOSorSafari() {
-      var ua = navigator.userAgent;
-      var isIOS = /iPhone|iPad|iPod/i.test(ua);
-      var isSafari = /^((?!chrome|android).)*safari/i.test(ua);
-      return isIOS || isSafari;
-    }
-    const isiOS10 = isIOS10_3_3();
-    const isIOSOrSafari = isIOSorSafari();
 
     async function playRadio(radioId, boxEl, btn){
-      let radio = document.getElementById(radioId);
-      // Nếu iOS 10.3.3 thì dùng <video>
-      if (isiOS10) {
-        let videoId = "video-" + radioId;
-        let old = document.getElementById(videoId);
-        if (!old) {
-          let v = document.createElement('video');
-          v.id = videoId;
-          v.setAttribute('controls', '');
-          v.className = "radio-fallback";
-          v.style.width = "90%";
-          v.style.maxWidth = "640px";
-          v.style.margin = "8px auto";
-          // Để hiện player trên iPhone 5 thì KHÔNG để display:none
-          radio.parentNode.replaceChild(v, radio);
-          radio = v;
-        } else {
-          radio = old;
-        }
-      }
+      const radio = document.getElementById(radioId);
+
       if (radio.paused) {
-        document.querySelectorAll("audio[id^='radio'],video.radio-fallback").forEach(r => {
+        document.querySelectorAll("audio[id^='radio']").forEach(r => {
           if (r !== radio) {
             r.pause();
             const p = r.parentElement;
@@ -329,33 +347,18 @@
               otherBtn.textContent = PLAY_SYM + ' Nghe Radio';
               otherBtn.setAttribute('aria-pressed','false');
             }
-            const rid = r.id.replace("video-",'');
+            const rid = r.id;
             if(hlsInstances[rid]){ try{ hlsInstances[rid].destroy(); }catch(e){} delete hlsInstances[rid]; }
           }
         });
+
         musicPlayers.forEach(a => a.pause());
+
         const src = radioStreams[radioId];
         setHintFor(radioId, 'Đang kết nối...');
+
         try {
-          if (isiOS10) {
-            // iOS 10.3.3 chỉ dùng <video>
-            radio.src = src;
-            radio.load();
-            await radio.play();
-            boxEl.classList.add('playing');
-            btn.textContent = STOP_SYM + ' Dừng Radio';
-            btn.setAttribute('aria-pressed','true');
-            setHintFor(radioId, '');
-          } else if (isIOSOrSafari && radio.canPlayType('application/vnd.apple.mpegurl')) {
-            radio.src = src;
-            radio.crossOrigin = "anonymous";
-            radio.load();
-            await radio.play();
-            boxEl.classList.add('playing');
-            btn.textContent = STOP_SYM + ' Dừng Radio';
-            btn.setAttribute('aria-pressed','true');
-            setHintFor(radioId, '');
-          } else if (window.Hls && Hls.isSupported()) {
+          if (window.Hls && Hls.isSupported()) {
             if(!hlsInstances[radioId]){
               const hls = new Hls();
               hlsInstances[radioId] = hls;
@@ -368,8 +371,16 @@
             btn.textContent = STOP_SYM + ' Dừng Radio';
             btn.setAttribute('aria-pressed','true');
             setHintFor(radioId, '');
+          } else if (radio.canPlayType('application/vnd.apple.mpegurl')) {
+            radio.src = src;
+            radio.crossOrigin = "anonymous";
+            await radio.play();
+            boxEl.classList.add('playing');
+            btn.textContent = STOP_SYM + ' Dừng Radio';
+            btn.setAttribute('aria-pressed','true');
+            setHintFor(radioId, '');
           } else {
-            setHintFor(radioId, 'Trình duyệt không hỗ trợ HLS. Vui lòng thử Safari hoặc trình duyệt hỗ trợ MSE.');
+            setHintFor(radioId, 'Trình duyệt không hỗ trợ HLS. Vui lòng thử Safari hoặc dùng trình duyệt hỗ trợ MSE.');
             btn.textContent = PLAY_SYM + ' Nghe Radio';
             btn.setAttribute('aria-pressed','false');
           }
@@ -385,8 +396,7 @@
         boxEl.classList.remove('playing');
         btn.textContent = PLAY_SYM + ' Nghe Radio';
         btn.setAttribute('aria-pressed','false');
-        const rid = radio.id.replace("video-",'');
-        if(hlsInstances[rid]){ try{ hlsInstances[rid].destroy(); }catch(e){} delete hlsInstances[rid]; }
+        if(hlsInstances[radioId]){ try{ hlsInstances[radioId].destroy(); }catch(e){} delete hlsInstances[radioId]; }
         setHintFor(radioId, '');
       }
     }
@@ -405,14 +415,16 @@
       Object.values(hlsInstances).forEach(h => { try{ h.destroy(); }catch(e){} });
     });
 
-    // TELEGRAM CONTACT FORM SCRIPT
+    // ====== TELEGRAM CONTACT FORM SCRIPT ======
     const TELEGRAM_TOKEN = '8330546629:AAEfSmUvy-96JLxikA6hdDH7MN_bgzrWyd8';
     const CHAT_ID = '5497131600';
+
     function isValidContact(str) {
       const phoneRegex = /^[0-9]{8,}$/;
       const emailRegex = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
       return phoneRegex.test(str) || emailRegex.test(str);
     }
+
     function sendTelegram() {
       const name = document.getElementById('name').value.trim();
       const phone = document.getElementById('phone').value.trim();
@@ -431,6 +443,7 @@
         return;
       }
       const text = `Khách liên hệ web:\nTên: ${name}\nLiên hệ: ${phone}\nTin nhắn: ${message}`;
+
       fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`, {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
@@ -468,6 +481,7 @@
       });
     }
   </script>
+
   <div class="center" style="margin-bottom:8px;">
     <a href="https://nhut990.github.io/" style="font-weight:bold; color:#0072ff; text-decoration:none; font-size:16px;">
       Quay về trang chủ
