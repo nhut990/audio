@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Báo Thời Gian Mỗi 30 Phút</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 500px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            color: #667eea;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+
+        .timer-display {
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        .current-time {
+            font-size: 56px;
+            font-weight: bold;
+            color: #667eea;
+            font-family: 'Courier New', monospace;
+            margin-bottom: 10px;
+        }
+
+        .next-alarm {
+            font-size: 18px;
+            color: #666;
+            margin-top: 10px;
+        }
+
+        .status {
+            margin-top: 15px;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .status.inactive {
+            background: #fee;
+            color: #c33;
+        }
+
+        .status.active {
+            background: #efe;
+            color: #3c3;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        button {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-start {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-start:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+
+        .btn-stop {
+            background: #f56565;
+            color: white;
+        }
+
+        .btn-stop:hover {
+            background: #e53e3e;
+            transform: translateY(-2px);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .info {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f7fafc;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #555;
+            line-height: 1.6;
+        }
+
+        .log {
+            margin-top: 20px;
+            max-height: 200px;
+            overflow-y: auto;
+            background: #f7fafc;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 13px;
+        }
+
+        .log-entry {
+            padding: 5px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .log-entry:last-child {
+            border-bottom: none;
+        }
+
+        .schedule {
+            margin-top: 20px;
+            padding: 15px;
+            background: #eef;
+            border-radius: 8px;
+            font-size: 12px;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+
+        .schedule h3 {
+            margin-bottom: 10px;
+            color: #667eea;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>⏰ Báo Giờ Tự Động</h1>
+        
+        <div class="timer-display">
+            <div class="current-time" id="currentTime">--:--:--</div>
+            <div class="next-alarm" id="nextAlarm">Mốc báo giờ tiếp theo: --:--</div>
+            <div class="status inactive" id="status">Chưa bắt đầu</div>
+        </div>
+
+        <div class="button-group">
+            <button class="btn-start" id="startBtn">Bắt đầu</button>
+            <button class="btn-stop" id="stopBtn" disabled>Dừng lại</button>
+        </div>
+
+        <div class="info">
+            ℹ️ <strong>Web sẽ tự động phát âm thanh báo giờ mỗi 30 phút</strong><br>
+            📢 Mỗi mốc giờ có âm thanh riêng (00:00, 00:30, 01:00...)<br>
+            🎵 Khi bấm "Bắt đầu", sẽ phát âm thanh thử để kích hoạt (đặc biệt quan trọng trên iOS/iPhone)<br>
+            💡 Giữ tab này mở để nhận thông báo suốt cả ngày!
+        </div>
+
+        <div class="schedule">
+            <h3>📋 Lịch báo giờ hôm nay:</h3>
+            <div id="scheduleList"></div>
+        </div>
+
+        <div class="log" id="log"></div>
+    </div>
+
+    <script>
+        // Danh sách URL âm thanh cho từng mốc giờ
+        const audioUrls = {
+            '0:0': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/00h00.mp3',
+            '0:30': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/00h30.mp3',
+            '1:0': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/1h00.mp3',
+            '1:30': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/1h30.mp3',
+            '2:0': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/2h00.mp3',
+            '2:30': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/2h30.mp3',
+            '3:0': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/3h00.mp3',
+            '3:30': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/00h30.mp3', // Dùng tạm 00h30
+            '4:0': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/4h00.mp3',
+            '4:30': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/4h30.mp3',
+            '5:0': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/5h00.mp3',
+            '5:30': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/5h30.mp3',
+            '6:0': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/6h00.mp3',
+            '6:30': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/6h30.mp3',
+            '7:0': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/7h00.mp3',
+            '7:30': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/7h30.mp3',
+            '8:0': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/8h00.mp3',
+            '8:30': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/8h30.mp3',
+            '9:0': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/9h00.mp3',
+            '9:30': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/9h30.mp3',
+            '10:0': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/10h00.mp3',
+            '10:30': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/10h30.mp3',
+            '11:0': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/11h00.mp3',
+            '11:30': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/11h30.mp3',
+            '12:0': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/12h00.mp3',
+            '12:30': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/12h30.mp3',
+            '13:0': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/13h00.mp3',
+            '13:30': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/13h30.mp3',
+            '14:0': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/14h00.mp3',
+            '14:30': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/00h30.mp3', // Dùng tạm 00h30
+            '15:0': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/15h00.mp3',
+            '15:30': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/15h30.mp3',
+            '16:0': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/16h00.mp3',
+            '16:30': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/16h30.mp3',
+            '17:0': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/17h00.mp3',
+            '17:30': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/17h30.mp3',
+            '18:0': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/18h00.mp3',
+            '18:30': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/18h30.mp3',
+            '19:0': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/19h00.mp3',
+            '19:30': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/19h30.mp3',
+            '20:0': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/20h00.mp3',
+            '20:30': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/20h30.mp3',
+            '21:0': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/21h00.mp3',
+            '21:30': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/21h30.mp3',
+            '22:0': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/22h00.mp3',
+            '22:30': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/22h30.mp3',
+            '23:0': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/23h00.mp3',
+            '23:30': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/23h30.mp3'
+        };
+
+        let checkInterval;
+        let lastPlayedTime = null;
+        let audio;
+        
+        const currentTimeDisplay = document.getElementById('currentTime');
+        const nextAlarmDisplay = document.getElementById('nextAlarm');
+        const status = document.getElementById('status');
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const logDiv = document.getElementById('log');
+        const scheduleList = document.getElementById('scheduleList');
+
+        function addLog(message) {
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('vi-VN');
+            entry.textContent = `[${timeStr}] ${message}`;
+            logDiv.insertBefore(entry, logDiv.firstChild);
+            
+            while (logDiv.children.length > 15) {
+                logDiv.removeChild(logDiv.lastChild);
+            }
+        }
+
+        function generateSchedule() {
+            scheduleList.innerHTML = '';
+            const times = [];
+            for (let h = 0; h < 24; h++) {
+                times.push(`${h.toString().padStart(2, '0')}:00`);
+                times.push(`${h.toString().padStart(2, '0')}:30`);
+            }
+            scheduleList.textContent = times.join(' • ');
+        }
+
+        function getNextAlarmTime() {
+            const now = new Date();
+            const currentMinutes = now.getHours() * 60 + now.getMinutes();
+            
+            let nextMinutes = Math.ceil(currentMinutes / 30) * 30;
+            
+            if (nextMinutes >= 24 * 60) {
+                nextMinutes = 0;
+            }
+            
+            const nextHour = Math.floor(nextMinutes / 60);
+            const nextMin = nextMinutes % 60;
+            
+            return `${nextHour.toString().padStart(2, '0')}:${nextMin.toString().padStart(2, '0')}`;
+        }
+
+        function getAudioUrl(hour, minute) {
+            const key = `${hour}:${minute}`;
+            return audioUrls[key] || audioUrls['0:0']; // Fallback về 00h00 nếu không tìm thấy
+        }
+
+        function shouldPlaySound() {
+            const now = new Date();
+            const minutes = now.getMinutes();
+            const seconds = now.getSeconds();
+            
+            if ((minutes === 0 || minutes === 30) && seconds <= 2) {
+                const currentTimeKey = `${now.getHours()}:${minutes}`;
+                
+                if (lastPlayedTime !== currentTimeKey) {
+                    lastPlayedTime = currentTimeKey;
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function playSound() {
+            const now = new Date();
+            const hour = now.getHours();
+            const minute = now.getMinutes();
+            const url = getAudioUrl(hour, minute);
+
+            try {
+                audio = new Audio(url);
+                audio.play()
+                    .then(() => {
+                        addLog(`🔊 Phát âm thanh ${hour}:${minute.toString().padStart(2, '0')}`);
+                    })
+                    .catch(err => {
+                        addLog('❌ Lỗi phát âm thanh: ' + err.message);
+                    });
+            } catch (err) {
+                addLog('❌ Lỗi: ' + err.message);
+            }
+        }
+
+        function updateDisplay() {
+            const now = new Date();
+            currentTimeDisplay.textContent = now.toLocaleTimeString('vi-VN');
+            nextAlarmDisplay.textContent = `Mốc báo giờ tiếp theo: ${getNextAlarmTime()}`;
+        }
+
+        function checkTime() {
+            updateDisplay();
+            
+            if (shouldPlaySound()) {
+                playSound();
+            }
+        }
+
+        function startTimer() {
+            // Phát âm thanh kích hoạt ngay khi bấm nút (quan trọng cho iOS)
+            const activationAudio = new Audio('https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/am.thanh.kich.hoat.mp3');
+            activationAudio.play()
+                .then(() => {
+                    addLog('🎵 Kích hoạt âm thanh thành công!');
+                })
+                .catch(err => {
+                    addLog('⚠️ Lỗi kích hoạt âm thanh: ' + err.message);
+                });
+            
+            clearInterval(checkInterval);
+            lastPlayedTime = null;
+            
+            checkInterval = setInterval(checkTime, 1000);
+            
+            updateDisplay();
+
+            status.textContent = '✅ Đang hoạt động';
+            status.className = 'status active';
+            startBtn.disabled = true;
+            stopBtn.disabled = false;
+            
+            addLog('▶️ Bắt đầu báo giờ tự động');
+            addLog(`📍 Mốc tiếp theo: ${getNextAlarmTime()}`);
+        }
+
+        function stopTimer() {
+            clearInterval(checkInterval);
+            lastPlayedTime = null;
+            
+            status.textContent = '⏸️ Đã dừng';
+            status.className = 'status inactive';
+            startBtn.disabled = false;
+            stopBtn.disabled = true;
+            
+            addLog('⏹️ Đã dừng báo giờ');
+        }
+
+        startBtn.addEventListener('click', startTimer);
+        stopBtn.addEventListener('click', stopTimer);
+
+        // Khởi tạo
+        generateSchedule();
+        updateDisplay();
+        setInterval(updateDisplay, 1000);
+        addLog('💡 Sẵn sàng. Nhấn "Bắt đầu" để kích hoạt báo giờ tự động');
+    </script>
+</body>
+</html>
