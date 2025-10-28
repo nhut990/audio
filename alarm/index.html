@@ -1,525 +1,231 @@
-<!DOCTYPE html>
-
+<!doctype html>
 <html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trình chỉnh sửa tài liệu</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-```
-    body {
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        min-height: 100vh;
-        padding: 15px;
-    }
-
-    .container {
-        max-width: 900px;
-        margin: 0 auto;
-        background: white;
-        border-radius: 15px;
-        box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-        overflow: hidden;
-    }
-
-    .header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 25px 20px;
-        text-align: center;
-    }
-
-    .header h1 {
-        font-size: 1.8em;
-        margin-bottom: 5px;
-    }
-
-    .header p {
-        opacity: 0.9;
-        font-size: 0.95em;
-    }
-
-    .upload-zone {
-        padding: 30px 20px;
-        text-align: center;
-    }
-
-    .upload-box {
-        border: 3px dashed #667eea;
-        border-radius: 12px;
-        padding: 40px 20px;
-        background: #f8f9ff;
-        cursor: pointer;
-        transition: all 0.3s;
-    }
-
-    .upload-box:hover {
-        background: #eef1ff;
-        transform: translateY(-3px);
-    }
-
-    .upload-icon {
-        font-size: 3em;
-        margin-bottom: 15px;
-    }
-
-    .upload-text {
-        font-size: 1.1em;
-        color: #333;
-        margin-bottom: 8px;
-    }
-
-    .upload-hint {
-        color: #666;
-        font-size: 0.9em;
-    }
-
-    #fileSelect {
-        display: none;
-    }
-
-    .editor-zone {
-        padding: 25px 20px;
-        display: none;
-    }
-
-    .file-badge {
-        background: #f0f0f0;
-        padding: 12px;
-        border-radius: 8px;
-        margin-bottom: 15px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 10px;
-    }
-
-    .file-title {
-        font-weight: 600;
-        color: #333;
-        font-size: 0.95em;
-        word-break: break-word;
-    }
-
-    .file-label {
-        background: #667eea;
-        color: white;
-        padding: 4px 12px;
-        border-radius: 15px;
-        font-size: 0.85em;
-        white-space: nowrap;
-    }
-
-    .tools {
-        background: #f8f9fa;
-        padding: 12px;
-        border-radius: 8px;
-        margin-bottom: 15px;
-        display: flex;
-        gap: 8px;
-        flex-wrap: wrap;
-    }
-
-    .tools button, .tools select {
-        padding: 8px 15px;
-        background: #667eea;
-        color: white;
-        border: none;
-        border-radius: 6px;
-        cursor: pointer;
-        font-size: 13px;
-        font-weight: 600;
-        transition: background 0.2s;
-    }
-
-    .tools button:hover {
-        background: #5568d3;
-    }
-
-    .tools button:active {
-        transform: scale(0.95);
-    }
-
-    .tools select {
-        cursor: pointer;
-    }
-
-    .edit-area {
-        border: 2px solid #e0e0e0;
-        border-radius: 8px;
-        padding: 20px;
-        min-height: 400px;
-        background: white;
-        outline: none;
-        line-height: 1.7;
-        font-size: 15px;
-    }
-
-    .edit-area:focus {
-        border-color: #667eea;
-    }
-
-    .pdf-display {
-        text-align: center;
-    }
-
-    .pdf-nav {
-        margin-bottom: 15px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: 10px;
-    }
-
-    .pdf-nav button {
-        padding: 8px 15px;
-        background: #667eea;
-        color: white;
-        border: none;
-        border-radius: 6px;
-        cursor: pointer;
-        font-size: 14px;
-    }
-
-    .pdf-nav button:disabled {
-        background: #ccc;
-        cursor: not-allowed;
-    }
-
-    .page-status {
-        font-weight: 600;
-        color: #333;
-    }
-
-    #pdfPage {
-        max-width: 100%;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.15);
-        margin: 0 auto;
-        display: block;
-    }
-
-    .info-msg {
-        text-align: center;
-        padding: 30px 20px;
-        color: #666;
-    }
-
-    .error-msg {
-        color: #dc3545;
-        padding: 20px;
-        text-align: center;
-        background: #fff5f5;
-        border-radius: 8px;
-        margin: 10px 0;
-    }
-
-    @media (max-width: 600px) {
-        .header h1 {
-            font-size: 1.5em;
-        }
-        
-        .tools {
-            flex-direction: column;
-        }
-        
-        .tools button, .tools select {
-            width: 100%;
-        }
-
-        .file-badge {
-            flex-direction: column;
-            align-items: flex-start;
-        }
-    }
-</style>
-```
-
+  <meta charset="utf-8" />
+  <title>IPA Inspector — Lấy Bundle / iOS min / Version</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial; padding: 18px; max-width:900px; margin:auto; }
+    input[type=text] { width:100%; padding:8px; box-sizing:border-box; }
+    button { padding:8px 12px; margin-top:8px; }
+    pre { background:#f4f4f4; padding:12px; overflow:auto; }
+    .warn { color:#a33; }
+    .ok { color:#166; }
+    label { font-weight:600; }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>📄 Chỉnh sửa tài liệu</h1>
-            <p>Hỗ trợ PDF & Word DOCX</p>
-        </div>
+  <h1>IPA Inspector</h1>
+  <p>Nhập URL đến file <code>.ipa</code> (http/https) rồi bấm <strong>Parse</strong>.</p>
 
-```
-    <div class="upload-zone" id="uploadZone">
-        <div class="upload-box" id="uploadBox">
-            <div class="upload-icon">📁</div>
-            <div class="upload-text">Click để chọn file</div>
-            <div class="upload-hint">PDF hoặc DOCX (tối đa 10MB)</div>
-        </div>
-        <input type="file" id="fileSelect" accept=".pdf,.docx">
-    </div>
+  <label for="url">IPA URL</label>
+  <input id="url" type="text" placeholder="https://example.com/app.ipa" />
+  <button id="parseBtn">Parse</button>
+  <button id="fileBtn">Mở file .ipa từ máy</button>
 
-    <div class="editor-zone" id="editorZone">
-        <div class="file-badge">
-            <span class="file-title" id="fileTitle">Chưa có file</span>
-            <span class="file-label" id="fileLabel">---</span>
-        </div>
+  <p id="status"></p>
 
-        <div class="tools" id="toolBar">
-            <button onclick="format('bold')" title="Đậm">🅱️</button>
-            <button onclick="format('italic')" title="Nghiêng">🅸</button>
-            <button onclick="format('underline')" title="Gạch chân">🆄</button>
-            <select onchange="setSize(this.value)" title="Cỡ chữ">
-                <option value="2">Nhỏ</option>
-                <option value="3" selected>Vừa</option>
-                <option value="5">Lớn</option>
-                <option value="7">Rất lớn</option>
-            </select>
-            <button onclick="format('justifyLeft')" title="Căn trái">⬅️</button>
-            <button onclick="format('justifyCenter')" title="Căn giữa">↔️</button>
-            <button onclick="format('justifyRight')" title="Căn phải">➡️</button>
-            <button onclick="save()" title="Tải xuống">💾 Lưu</button>
-            <button onclick="reset()" title="File mới">🔄 Mới</button>
-        </div>
+  <div id="result" style="display:none;">
+    <h3>Kết quả</h3>
+    <table>
+      <tbody>
+        <tr><td><strong>Bundle Identifier</strong></td><td id="bundle">—</td></tr>
+        <tr><td><strong>Minimum iOS</strong></td><td id="minios">—</td></tr>
+        <tr><td><strong>Version (CFBundleShortVersionString)</strong></td><td id="ver">—</td></tr>
+        <tr><td><strong>Build (CFBundleVersion)</strong></td><td id="build">—</td></tr>
+        <tr><td><strong>App name</strong></td><td id="appname">—</td></tr>
+        <tr><td><strong>Info.plist path</strong></td><td id="plistpath">—</td></tr>
+      </tbody>
+    </table>
 
-        <div id="workArea"></div>
-    </div>
-</div>
+    <h4>Full Info.plist (JSON)</h4>
+    <pre id="plistjson"></pre>
+  </div>
 
-<script>
-    // Cấu hình PDF.js
-    if (typeof pdfjsLib !== 'undefined') {
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  <hr>
+  <p class="warn">Ghi chú: cần 2 thư viện JS: <code>JSZip</code> và <code>plist / bplist-parser</code>. Trang dùng CDN.</p>
+
+  <!-- Thư viện JSZip -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <!-- plist (XML plist parser) -->
+  <script src="https://unpkg.com/plist@3.0.1/dist/plist.min.js"></script>
+  <!-- bplist-parser (binary plist) - dùng bản browserified nếu có -->
+  <script src="https://unpkg.com/bplist-parser@0.1.1/index.js"></script>
+
+  <script>
+  // Hàm hiển thị trạng thái
+  const statusEl = document.getElementById('status');
+  function status(msg, ok=false){
+    statusEl.textContent = msg;
+    statusEl.className = ok ? 'ok' : 'warn';
+  }
+
+  // Tìm đường dẫn Info.plist trong ZIP
+  function findInfoPlistPath(entries) {
+    // entries là array các tên file
+    const candidates = entries.filter(n => n.startsWith('Payload/') && n.endsWith('Info.plist'));
+    if (!candidates.length) return null;
+    // ưu tiên dạng Payload/AppName.app/Info.plist
+    for (const c of candidates) {
+      const parts = c.split('/');
+      if (parts.length >= 3 && parts[parts.length-2].endsWith('.app')) return c;
+    }
+    return candidates[0];
+  }
+
+  // Kiểm tra magic header của binary plist: "bplist"
+  function isBinaryPlist(bytes) {
+    if (!bytes || bytes.length < 6) return false;
+    const sig = String.fromCharCode(...bytes.slice(0,6));
+    return sig === 'bplist';
+  }
+
+  // Chuyển ArrayBuffer -> Uint8Array
+  function toUint8(a) {
+    return new Uint8Array(a);
+  }
+
+  // Parse xml plist text -> object using plist.js (window.plist)
+  function parseXmlPlistText(text) {
+    if (!window.plist) throw new Error('Library plist không sẵn có');
+    return window.plist.parse(text);
+  }
+
+  // Parse binary plist using bplistParser (from bplist-parser lib). It exposes parseBuffer
+  function parseBinaryPlist(uint8arr) {
+    if (!window.bplistParser && !window.parseBplist) {
+      // some builds expose parseBplist or bplistParser
+      if (window.bplistParser && typeof window.bplistParser.parseBuffer === 'function') {
+        return window.bplistParser.parseBuffer(uint8arr);
+      }
+      throw new Error('Binary plist parser (bplist-parser) không có trong trang. Vui lòng dùng server hoặc bật CORS và thử lại.');
+    }
+    // try different exposures
+    if (window.bplistParser && typeof window.bplistParser.parseBuffer === 'function') {
+      return window.bplistParser.parseBuffer(uint8arr);
+    }
+    if (typeof window.parseBplist === 'function') {
+      return window.parseBplist(uint8arr); // hypothetical
+    }
+    if (typeof window.bplistParser === 'function') {
+      return window.bplistParser(uint8arr);
+    }
+    throw new Error('Không tìm được hàm parse cho binary plist trong bplist-parser đã load.');
+  }
+
+  // Hiển thị kết quả
+  function showResult(info, plistPath) {
+    document.getElementById('bundle').textContent = info.CFBundleIdentifier || info.BundleIdentifier || '(không tìm thấy)';
+    document.getElementById('minios').textContent = info.MinimumOSVersion || info.LSMinimumSystemVersion || info.DTPlatformVersion || '(không tìm thấy)';
+    document.getElementById('ver').textContent = info.CFBundleShortVersionString || '(không tìm thấy)';
+    document.getElementById('build').textContent = info.CFBundleVersion || '(không tìm thấy)';
+    document.getElementById('appname').textContent = info.CFBundleDisplayName || info.CFBundleName || '(không tìm thấy)';
+    document.getElementById('plistpath').textContent = plistPath || '(không tìm thấy)';
+    const pretty = JSON.stringify(info, null, 2);
+    document.getElementById('plistjson').textContent = pretty;
+    document.getElementById('result').style.display = 'block';
+  }
+
+  async function processIpaArrayBuffer(ab) {
+    status('Đang mở IPA...', true);
+    const zip = await JSZip.loadAsync(ab);
+    const entries = Object.keys(zip.files);
+    const plistPath = findInfoPlistPath(entries);
+    if (!plistPath) {
+      status('Không tìm thấy Info.plist trong IPA', false);
+      throw new Error('Info.plist không tìm thấy');
+    }
+    status('Đã tìm Info.plist: ' + plistPath, true);
+
+    // đọc file Info.plist dạng ArrayBuffer
+    const file = zip.file(plistPath);
+    if (!file) throw new Error('Không mở được entry Info.plist');
+    const contentAB = await file.async('arraybuffer');
+    const u8 = toUint8(contentAB);
+
+    let info = null;
+
+    try {
+      if (isBinaryPlist(u8)) {
+        status('Info.plist là binary plist — parsing...', true);
+        // bplist-parser trả về array (root objects), thường object ở index 0
+        const parsed = parseBinaryPlist(u8);
+        // nếu trả về promise or array
+        if (parsed && typeof parsed.then === 'function') {
+          // in case the lib returns a promise
+          info = await parsed;
+        } else {
+          info = parsed;
+        }
+        // bplist-parser thường trả về array of objects
+        if (Array.isArray(info)) info = info[0] || {};
+      } else {
+        status('Info.plist là XML plist — parsing...', true);
+        const text = new TextDecoder().decode(u8);
+        info = parseXmlPlistText(text);
+      }
+    } catch (e) {
+      console.error(e);
+      throw new Error('Lỗi khi parse Info.plist: ' + (e && e.message ? e.message : e));
     }
 
-    // Biến
-    let fileData = null;
-    let fileExt = null;
-    let pdf = null;
-    let currentPage = 1;
+    showResult(info, plistPath);
+    status('Hoàn tất.', true);
+  }
 
-    // Elements
-    const uploadBox = document.getElementById('uploadBox');
-    const fileSelect = document.getElementById('fileSelect');
-    const uploadZone = document.getElementById('uploadZone');
-    const editorZone = document.getElementById('editorZone');
-    const workArea = document.getElementById('workArea');
-    const fileTitle = document.getElementById('fileTitle');
-    const fileLabel = document.getElementById('fileLabel');
-    const toolBar = document.getElementById('toolBar');
+  // Fetch từ URL (cân nhắc CORS)
+  async function fetchIpaFromUrl(url) {
+    status('Fetching IPA...', true);
+    const resp = await fetch(url, { method: 'GET' });
+    if (!resp.ok) throw new Error('HTTP error: ' + resp.status);
+    const ab = await resp.arrayBuffer();
+    return ab;
+  }
 
-    // Click để chọn file
-    uploadBox.onclick = () => fileSelect.click();
+  // Event handlers
+  document.getElementById('parseBtn').addEventListener('click', async () => {
+    const url = document.getElementById('url').value.trim();
+    if (!url) { status('Nhập URL trước.', false); return; }
+    try {
+      status('Bắt đầu tải... (chú ý: CORS có thể chặn)', true);
+      const ab = await fetchIpaFromUrl(url);
+      await processIpaArrayBuffer(ab);
+    } catch (err) {
+      console.error(err);
+      status('Lỗi: ' + err.message, false);
+      alert('Lỗi: ' + err.message + '\nNếu liên quan tới CORS, hãy dùng proxy hoặc tải file về rồi bấm "Mở file .ipa từ máy".');
+    }
+  });
 
-    // Khi chọn file
-    fileSelect.onchange = (e) => {
-        if (e.target.files && e.target.files[0]) {
-            loadFile(e.target.files[0]);
-        }
+  // Mở file từ máy người dùng (không có vấn đề CORS)
+  document.getElementById('fileBtn').addEventListener('click', () => {
+    const inp = document.createElement('input');
+    inp.type = 'file';
+    inp.accept = '.ipa,application/zip,application/octet-stream';
+    inp.onchange = async () => {
+      const f = inp.files[0];
+      if (!f) return;
+      status('Đang đọc file từ máy...', true);
+      try {
+        const ab = await f.arrayBuffer();
+        await processIpaArrayBuffer(ab);
+      } catch (e) {
+        console.error(e);
+        status('Lỗi khi đọc file: ' + (e.message || e), false);
+      }
     };
+    inp.click();
+  });
 
-    // Load file
-    function loadFile(file) {
-        // Kiểm tra size
-        if (file.size > 10485760) {
-            alert('❌ File quá lớn! Tối đa 10MB');
-            return;
-        }
-
-        // Lấy extension
-        const name = file.name;
-        const ext = name.split('.').pop().toLowerCase();
-
-        // Kiểm tra định dạng
-        if (ext !== 'pdf' && ext !== 'docx') {
-            alert('❌ Chỉ hỗ trợ file PDF và DOCX!\n\n⚠️ File .DOC không được hỗ trợ. Vui lòng chuyển sang .DOCX trong Word');
-            return;
-        }
-
-        fileData = file;
-        fileExt = ext;
-
-        // Cập nhật UI
-        fileTitle.textContent = name;
-        fileLabel.textContent = ext.toUpperCase();
-        
-        uploadZone.style.display = 'none';
-        editorZone.style.display = 'block';
-        
-        workArea.innerHTML = '<div class="info-msg">⏳ Đang tải...</div>';
-
-        // Xử lý file
-        if (ext === 'pdf') {
-            toolBar.style.display = 'none';
-            processPDF(file);
-        } else {
-            toolBar.style.display = 'flex';
-            processWord(file);
-        }
+  // Quick check libraries loaded
+  window.addEventListener('load', () => {
+    if (!window.JSZip) {
+      status('JSZip chưa được load!', false);
+    } else {
+      status('Sẵn sàng. Chú ý CORS khi dùng URL.', true);
     }
+  });
 
-    // Xử lý PDF
-    function processPDF(file) {
-        const reader = new FileReader();
-        
-        reader.onload = function(e) {
-            try {
-                const data = new Uint8Array(e.target.result);
-                
-                pdfjsLib.getDocument({data: data}).promise.then(function(pdfDoc) {
-                    pdf = pdfDoc;
-                    
-                    workArea.innerHTML = `
-                        <div class="pdf-display">
-                            <div class="pdf-nav">
-                                <button onclick="prevPage()" id="prevBtn">◀️</button>
-                                <span class="page-status">
-                                    Trang <span id="pageNum">1</span> / <span id="totalPages">${pdfDoc.numPages}</span>
-                                </span>
-                                <button onclick="nextPage()" id="nextBtn">▶️</button>
-                            </div>
-                            <canvas id="pdfPage"></canvas>
-                        </div>
-                    `;
-                    
-                    showPage(1);
-                }).catch(function(err) {
-                    workArea.innerHTML = '<div class="error-msg">❌ Không thể đọc PDF. File có thể bị hỏng hoặc có mật khẩu.</div>';
-                    console.error(err);
-                });
-            } catch (err) {
-                workArea.innerHTML = '<div class="error-msg">❌ Lỗi xử lý file: ' + err.message + '</div>';
-                console.error(err);
-            }
-        };
-        
-        reader.onerror = function() {
-            workArea.innerHTML = '<div class="error-msg">❌ Không thể đọc file</div>';
-        };
-        
-        reader.readAsArrayBuffer(file);
-    }
-
-    // Hiển thị trang PDF
-    function showPage(num) {
-        currentPage = num;
-        
-        pdf.getPage(num).then(function(page) {
-            const canvas = document.getElementById('pdfPage');
-            if (!canvas) return;
-            
-            const ctx = canvas.getContext('2d');
-            const scale = 1.5;
-            const viewport = page.getViewport({scale: scale});
-            
-            canvas.width = viewport.width;
-            canvas.height = viewport.height;
-            
-            page.render({
-                canvasContext: ctx,
-                viewport: viewport
-            });
-            
-            const pageNumEl = document.getElementById('pageNum');
-            if (pageNumEl) pageNumEl.textContent = num;
-            
-            // Cập nhật nút
-            const prevBtn = document.getElementById('prevBtn');
-            const nextBtn = document.getElementById('nextBtn');
-            if (prevBtn) prevBtn.disabled = (num === 1);
-            if (nextBtn) nextBtn.disabled = (num === pdf.numPages);
-        });
-    }
-
-    function prevPage() {
-        if (currentPage > 1) showPage(currentPage - 1);
-    }
-
-    function nextPage() {
-        if (currentPage < pdf.numPages) showPage(currentPage + 1);
-    }
-
-    // Xử lý Word
-    function processWord(file) {
-        const reader = new FileReader();
-        
-        reader.onload = function(e) {
-            try {
-                mammoth.convertToHtml({arrayBuffer: e.target.result})
-                    .then(function(result) {
-                        let html = result.value;
-                        if (!html || html.trim() === '') {
-                            html = '<p>File không có nội dung hoặc không đọc được.</p>';
-                        }
-                        workArea.innerHTML = '<div class="edit-area" contenteditable="true">' + html + '</div>';
-                    })
-                    .catch(function(err) {
-                        workArea.innerHTML = '<div class="error-msg">❌ Không thể đọc DOCX: ' + err.message + '<br><br>Vui lòng đảm bảo file là .DOCX hợp lệ (không phải .DOC)</div>';
-                        console.error(err);
-                    });
-            } catch (err) {
-                workArea.innerHTML = '<div class="error-msg">❌ Lỗi: ' + err.message + '</div>';
-                console.error(err);
-            }
-        };
-        
-        reader.onerror = function() {
-            workArea.innerHTML = '<div class="error-msg">❌ Không thể đọc file</div>';
-        };
-        
-        reader.readAsArrayBuffer(file);
-    }
-
-    // Format text
-    function format(cmd) {
-        if (fileExt === 'docx') {
-            document.execCommand(cmd, false, null);
-        }
-    }
-
-    function setSize(val) {
-        if (fileExt === 'docx') {
-            document.execCommand('fontSize', false, val);
-        }
-    }
-
-    // Lưu file
-    function save() {
-        if (fileExt === 'docx') {
-            const editor = workArea.querySelector('.edit-area');
-            if (!editor) return;
-            
-            const html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><style>body{font-family:Arial;padding:40px;line-height:1.6}</style></head><body>' + editor.innerHTML + '</body></html>';
-            
-            const blob = new Blob([html], {type: 'text/html'});
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = fileData.name.replace('.docx', '') + '_edited.html';
-            a.click();
-            URL.revokeObjectURL(url);
-            
-            alert('✅ Đã lưu file dạng HTML!');
-        } else {
-            alert('ℹ️ File PDF chỉ xem được, không thể chỉnh sửa');
-        }
-    }
-
-    // Reset
-    function reset() {
-        uploadZone.style.display = 'block';
-        editorZone.style.display = 'none';
-        workArea.innerHTML = '';
-        fileSelect.value = '';
-        fileData = null;
-        fileExt = null;
-        pdf = null;
-        currentPage = 1;
-    }
-</script>
-```
-
+  </script>
 </body>
 </html>
