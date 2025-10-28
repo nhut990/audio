@@ -308,9 +308,21 @@
     });
 
     function handleFile(file) {
+        // Kiểm tra kích thước file (tối đa 10MB)
+        if (file.size > 10 * 1024 * 1024) {
+            alert('File quá lớn! Vui lòng chọn file nhỏ hơn 10MB.');
+            return;
+        }
+
         currentFile = file;
         const extension = file.name.split('.').pop().toLowerCase();
         
+        // Kiểm tra định dạng file
+        if (!['pdf', 'doc', 'docx'].includes(extension)) {
+            alert('Định dạng file không được hỗ trợ! Vui lòng chọn file PDF, DOC hoặc DOCX.');
+            return;
+        }
+
         fileName.textContent = file.name;
         fileType.textContent = extension.toUpperCase();
         
@@ -403,11 +415,14 @@
             const arrayBuffer = e.target.result;
             mammoth.convertToHtml({arrayBuffer: arrayBuffer})
                 .then(function(result) {
-                    contentArea.innerHTML = `<div class="editor-content" contenteditable="true">${result.value}</div>`;
+                    contentArea.innerHTML = `<div class="editor-content" contenteditable="true">${result.value || '<p>Nội dung trống hoặc không đọc được</p>'}</div>`;
                 })
                 .catch(function(err) {
-                    contentArea.innerHTML = `<div class="editor-content" contenteditable="true"><p style="color:red;">Lỗi khi đọc file: ${err.message}</p></div>`;
+                    contentArea.innerHTML = `<div class="editor-content" contenteditable="true"><p style="color:red;">Lỗi khi đọc file: ${err.message}</p><p>Vui lòng thử file .docx khác hoặc chuyển đổi file sang định dạng mới hơn.</p></div>`;
                 });
+        };
+        reader.onerror = function(err) {
+            contentArea.innerHTML = `<div class="editor-content" contenteditable="true"><p style="color:red;">Không thể đọc file. Vui lòng thử lại.</p></div>`;
         };
         reader.readAsArrayBuffer(file);
     }
