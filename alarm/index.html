@@ -1,9 +1,12 @@
 <!DOCTYPE html>
+
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Báo Thời Gian Mỗi 30 Phút</title>
+    <title>Trình chỉnh sửa PDF & Word</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -11,394 +14,443 @@
             box-sizing: border-box;
         }
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
+```
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px;
+    }
 
-        .container {
-            background: white;
-            padding: 40px;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            max-width: 500px;
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        overflow: hidden;
+    }
+
+    .header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 30px;
+        text-align: center;
+    }
+
+    .header h1 {
+        font-size: 2.5em;
+        margin-bottom: 10px;
+    }
+
+    .header p {
+        opacity: 0.9;
+        font-size: 1.1em;
+    }
+
+    .upload-section {
+        padding: 40px;
+        text-align: center;
+        border-bottom: 2px solid #f0f0f0;
+    }
+
+    .upload-area {
+        border: 3px dashed #667eea;
+        border-radius: 15px;
+        padding: 60px 40px;
+        background: #f8f9ff;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .upload-area:hover {
+        background: #eef1ff;
+        border-color: #764ba2;
+        transform: translateY(-5px);
+    }
+
+    .upload-area.dragover {
+        background: #e0e7ff;
+        border-color: #4c51bf;
+    }
+
+    .upload-icon {
+        font-size: 4em;
+        margin-bottom: 20px;
+    }
+
+    .upload-text {
+        font-size: 1.3em;
+        color: #333;
+        margin-bottom: 10px;
+    }
+
+    .upload-subtext {
+        color: #666;
+        font-size: 0.95em;
+    }
+
+    #fileInput {
+        display: none;
+    }
+
+    .editor-section {
+        padding: 40px;
+        display: none;
+    }
+
+    .toolbar {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    .toolbar button {
+        padding: 10px 20px;
+        background: #667eea;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .toolbar button:hover {
+        background: #764ba2;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+    }
+
+    .toolbar select {
+        padding: 10px 15px;
+        border: 2px solid #667eea;
+        border-radius: 8px;
+        font-size: 14px;
+        cursor: pointer;
+    }
+
+    .editor-content {
+        border: 2px solid #e0e0e0;
+        border-radius: 10px;
+        padding: 30px;
+        min-height: 500px;
+        background: white;
+        outline: none;
+    }
+
+    .editor-content[contenteditable="true"]:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .file-info {
+        background: #f8f9ff;
+        padding: 15px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .file-name {
+        font-weight: 600;
+        color: #333;
+        font-size: 1.1em;
+    }
+
+    .file-type {
+        background: #667eea;
+        color: white;
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-size: 0.9em;
+    }
+
+    .pdf-viewer {
+        border: 2px solid #e0e0e0;
+        border-radius: 10px;
+        padding: 20px;
+        background: #f5f5f5;
+        text-align: center;
+    }
+
+    .pdf-page {
+        margin: 20px auto;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+        max-width: 100%;
+    }
+
+    .pdf-controls {
+        margin-bottom: 20px;
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        align-items: center;
+    }
+
+    .page-info {
+        font-weight: 600;
+        color: #333;
+    }
+
+    @media (max-width: 768px) {
+        .header h1 {
+            font-size: 1.8em;
+        }
+        
+        .toolbar {
+            flex-direction: column;
+        }
+        
+        .toolbar button, .toolbar select {
             width: 100%;
         }
+    }
+</style>
+```
 
-        h1 {
-            text-align: center;
-            color: #667eea;
-            margin-bottom: 30px;
-            font-size: 28px;
-        }
-
-        .timer-display {
-            text-align: center;
-            margin: 30px 0;
-        }
-
-        .current-time {
-            font-size: 56px;
-            font-weight: bold;
-            color: #667eea;
-            font-family: 'Courier New', monospace;
-            margin-bottom: 10px;
-        }
-
-        .next-alarm {
-            font-size: 18px;
-            color: #666;
-            margin-top: 10px;
-        }
-
-        .status {
-            margin-top: 15px;
-            padding: 12px;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 16px;
-        }
-
-        .status.inactive {
-            background: #fee;
-            color: #c33;
-        }
-
-        .status.active {
-            background: #efe;
-            color: #3c3;
-        }
-
-        .button-group {
-            display: flex;
-            gap: 10px;
-            margin-top: 20px;
-        }
-
-        button {
-            flex: 1;
-            padding: 15px;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .btn-start {
-            background: #667eea;
-            color: white;
-        }
-
-        .btn-start:hover {
-            background: #5568d3;
-            transform: translateY(-2px);
-        }
-
-        .btn-stop {
-            background: #f56565;
-            color: white;
-        }
-
-        .btn-stop:hover {
-            background: #e53e3e;
-            transform: translateY(-2px);
-        }
-
-        button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none !important;
-        }
-
-        .info {
-            margin-top: 20px;
-            padding: 15px;
-            background: #f7fafc;
-            border-radius: 8px;
-            font-size: 14px;
-            color: #555;
-            line-height: 1.6;
-        }
-
-        .log {
-            margin-top: 20px;
-            max-height: 200px;
-            overflow-y: auto;
-            background: #f7fafc;
-            padding: 15px;
-            border-radius: 8px;
-            font-size: 13px;
-        }
-
-        .log-entry {
-            padding: 5px 0;
-            border-bottom: 1px solid #e2e8f0;
-        }
-
-        .log-entry:last-child {
-            border-bottom: none;
-        }
-
-        .schedule {
-            margin-top: 20px;
-            padding: 15px;
-            background: #eef;
-            border-radius: 8px;
-            font-size: 12px;
-            max-height: 150px;
-            overflow-y: auto;
-        }
-
-        .schedule h3 {
-            margin-bottom: 10px;
-            color: #667eea;
-            font-size: 14px;
-        }
-    </style>
 </head>
 <body>
     <div class="container">
-        <h1>⏰ Báo Giờ Tự Động</h1>
-        
-        <div class="timer-display">
-            <div class="current-time" id="currentTime">--:--:--</div>
-            <div class="next-alarm" id="nextAlarm">Mốc báo giờ tiếp theo: --:--</div>
-            <div class="status inactive" id="status">Chưa bắt đầu</div>
+        <div class="header">
+            <h1>📄 Trình chỉnh sửa tài liệu</h1>
+            <p>Upload và chỉnh sửa file PDF, Word trực tiếp</p>
         </div>
 
-        <div class="button-group">
-            <button class="btn-start" id="startBtn">Bắt đầu</button>
-            <button class="btn-stop" id="stopBtn" disabled>Dừng lại</button>
+```
+    <div class="upload-section" id="uploadSection">
+        <div class="upload-area" id="uploadArea">
+            <div class="upload-icon">📁</div>
+            <div class="upload-text">Kéo thả file vào đây hoặc click để chọn</div>
+            <div class="upload-subtext">Hỗ trợ: PDF, DOCX, DOC (tối đa 10MB)</div>
         </div>
-
-        <div class="info">
-            ℹ️ <strong>Web sẽ tự động phát âm thanh báo giờ mỗi 30 phút</strong><br>
-            📢 Mỗi mốc giờ có âm thanh riêng (00:00, 00:30, 01:00...)<br>
-            🎵 Khi bấm "Bắt đầu", sẽ phát âm thanh thử để kích hoạt (đặc biệt quan trọng trên iOS/iPhone)<br>
-            💡 Giữ tab này mở để nhận thông báo suốt cả ngày!
-        </div>
-
-        <div class="schedule">
-            <h3>📋 Lịch báo giờ hôm nay:</h3>
-            <div id="scheduleList"></div>
-        </div>
-
-        <div class="log" id="log"></div>
+        <input type="file" id="fileInput" accept=".pdf,.doc,.docx">
     </div>
 
-    <script>
-        // Danh sách URL âm thanh cho từng mốc giờ
-        const audioUrls = {
-            '0:0': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/00h00.mp3',
-            '0:30': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/00h30.mp3',
-            '1:0': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/1h00.mp3',
-            '1:30': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/1h30.mp3',
-            '2:0': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/2h00.mp3',
-            '2:30': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/2h30.mp3',
-            '3:0': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/3h00.mp3',
-            '3:30': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/00h30.mp3', // Dùng tạm 00h30
-            '4:0': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/4h00.mp3',
-            '4:30': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/4h30.mp3',
-            '5:0': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/5h00.mp3',
-            '5:30': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/5h30.mp3',
-            '6:0': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/6h00.mp3',
-            '6:30': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/6h30.mp3',
-            '7:0': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/7h00.mp3',
-            '7:30': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/7h30.mp3',
-            '8:0': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/8h00.mp3',
-            '8:30': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/8h30.mp3',
-            '9:0': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/9h00.mp3',
-            '9:30': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/9h30.mp3',
-            '10:0': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/10h00.mp3',
-            '10:30': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/10h30.mp3',
-            '11:0': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/11h00.mp3',
-            '11:30': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/11h30.mp3',
-            '12:0': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/12h00.mp3',
-            '12:30': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/12h30.mp3',
-            '13:0': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/13h00.mp3',
-            '13:30': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/13h30.mp3',
-            '14:0': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/14h00.mp3',
-            '14:30': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/00h30.mp3', // Dùng tạm 00h30
-            '15:0': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/15h00.mp3',
-            '15:30': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/15h30.mp3',
-            '16:0': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/16h00.mp3',
-            '16:30': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/16h30.mp3',
-            '17:0': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/17h00.mp3',
-            '17:30': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/17h30.mp3',
-            '18:0': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/18h00.mp3',
-            '18:30': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/18h30.mp3',
-            '19:0': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/19h00.mp3',
-            '19:30': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/19h30.mp3',
-            '20:0': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/20h00.mp3',
-            '20:30': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/20h30.mp3',
-            '21:0': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/21h00.mp3',
-            '21:30': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/21h30.mp3',
-            '22:0': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/22h00.mp3',
-            '22:30': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/22h30.mp3',
-            '23:0': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/23h00.mp3',
-            '23:30': 'https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/23h30.mp3'
-        };
+    <div class="editor-section" id="editorSection">
+        <div class="file-info">
+            <span class="file-name" id="fileName">Chưa có file</span>
+            <span class="file-type" id="fileType">---</span>
+        </div>
 
-        let checkInterval;
-        let lastPlayedTime = null;
-        let audio;
+        <div class="toolbar">
+            <button onclick="formatText('bold')">🅱️ Đậm</button>
+            <button onclick="formatText('italic')">🅸 Nghiêng</button>
+            <button onclick="formatText('underline')">🆄 Gạch chân</button>
+            <select onchange="changeFontSize(this.value)">
+                <option value="3">Nhỏ</option>
+                <option value="4" selected>Trung bình</option>
+                <option value="5">Lớn</option>
+                <option value="6">Rất lớn</option>
+            </select>
+            <button onclick="formatText('justifyLeft')">⬅️ Trái</button>
+            <button onclick="formatText('justifyCenter')">↔️ Giữa</button>
+            <button onclick="formatText('justifyRight')">➡️ Phải</button>
+            <button onclick="downloadFile()">💾 Tải xuống</button>
+            <button onclick="resetEditor()">🔄 File mới</button>
+        </div>
+
+        <div id="contentArea"></div>
+    </div>
+</div>
+
+<script>
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+    const uploadArea = document.getElementById('uploadArea');
+    const fileInput = document.getElementById('fileInput');
+    const uploadSection = document.getElementById('uploadSection');
+    const editorSection = document.getElementById('editorSection');
+    const contentArea = document.getElementById('contentArea');
+    const fileName = document.getElementById('fileName');
+    const fileType = document.getElementById('fileType');
+
+    let currentFile = null;
+    let currentFileType = null;
+    let pdfDoc = null;
+    let pageNum = 1;
+    let pageRendering = false;
+    let pageNumPending = null;
+
+    // Drag and drop
+    uploadArea.addEventListener('click', () => fileInput.click());
+    
+    uploadArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadArea.classList.add('dragover');
+    });
+
+    uploadArea.addEventListener('dragleave', () => {
+        uploadArea.classList.remove('dragover');
+    });
+
+    uploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadArea.classList.remove('dragover');
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            handleFile(files[0]);
+        }
+    });
+
+    fileInput.addEventListener('change', (e) => {
+        if (e.target.files.length > 0) {
+            handleFile(e.target.files[0]);
+        }
+    });
+
+    function handleFile(file) {
+        currentFile = file;
+        const extension = file.name.split('.').pop().toLowerCase();
         
-        const currentTimeDisplay = document.getElementById('currentTime');
-        const nextAlarmDisplay = document.getElementById('nextAlarm');
-        const status = document.getElementById('status');
-        const startBtn = document.getElementById('startBtn');
-        const stopBtn = document.getElementById('stopBtn');
-        const logDiv = document.getElementById('log');
-        const scheduleList = document.getElementById('scheduleList');
+        fileName.textContent = file.name;
+        fileType.textContent = extension.toUpperCase();
+        
+        uploadSection.style.display = 'none';
+        editorSection.style.display = 'block';
 
-        function addLog(message) {
-            const entry = document.createElement('div');
-            entry.className = 'log-entry';
-            const now = new Date();
-            const timeStr = now.toLocaleTimeString('vi-VN');
-            entry.textContent = `[${timeStr}] ${message}`;
-            logDiv.insertBefore(entry, logDiv.firstChild);
-            
-            while (logDiv.children.length > 15) {
-                logDiv.removeChild(logDiv.lastChild);
-            }
+        if (extension === 'pdf') {
+            currentFileType = 'pdf';
+            loadPDF(file);
+        } else if (extension === 'docx' || extension === 'doc') {
+            currentFileType = 'word';
+            loadWord(file);
         }
+    }
 
-        function generateSchedule() {
-            scheduleList.innerHTML = '';
-            const times = [];
-            for (let h = 0; h < 24; h++) {
-                times.push(`${h.toString().padStart(2, '0')}:00`);
-                times.push(`${h.toString().padStart(2, '0')}:30`);
-            }
-            scheduleList.textContent = times.join(' • ');
-        }
+    function loadPDF(file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const typedarray = new Uint8Array(e.target.result);
+            
+            pdfjsLib.getDocument(typedarray).promise.then(function(pdf) {
+                pdfDoc = pdf;
+                contentArea.innerHTML = `
+                    <div class="pdf-viewer">
+                        <div class="pdf-controls">
+                            <button onclick="prevPage()">◀️ Trang trước</button>
+                            <span class="page-info">Trang <span id="page_num"></span> / <span id="page_count"></span></span>
+                            <button onclick="nextPage()">Trang sau ▶️</button>
+                        </div>
+                        <canvas id="pdf-canvas" class="pdf-page"></canvas>
+                    </div>
+                `;
+                document.getElementById('page_count').textContent = pdf.numPages;
+                renderPage(pageNum);
+            });
+        };
+        reader.readAsArrayBuffer(file);
+    }
 
-        function getNextAlarmTime() {
-            const now = new Date();
-            const currentMinutes = now.getHours() * 60 + now.getMinutes();
-            
-            let nextMinutes = Math.ceil(currentMinutes / 30) * 30;
-            
-            if (nextMinutes >= 24 * 60) {
-                nextMinutes = 0;
-            }
-            
-            const nextHour = Math.floor(nextMinutes / 60);
-            const nextMin = nextMinutes % 60;
-            
-            return `${nextHour.toString().padStart(2, '0')}:${nextMin.toString().padStart(2, '0')}`;
-        }
+    function renderPage(num) {
+        pageRendering = true;
+        pdfDoc.getPage(num).then(function(page) {
+            const canvas = document.getElementById('pdf-canvas');
+            const ctx = canvas.getContext('2d');
+            const viewport = page.getViewport({scale: 1.5});
 
-        function getAudioUrl(hour, minute) {
-            const key = `${hour}:${minute}`;
-            return audioUrls[key] || audioUrls['0:0']; // Fallback về 00h00 nếu không tìm thấy
-        }
+            canvas.height = viewport.height;
+            canvas.width = viewport.width;
 
-        function shouldPlaySound() {
-            const now = new Date();
-            const minutes = now.getMinutes();
-            const seconds = now.getSeconds();
-            
-            if ((minutes === 0 || minutes === 30) && seconds <= 2) {
-                const currentTimeKey = `${now.getHours()}:${minutes}`;
-                
-                if (lastPlayedTime !== currentTimeKey) {
-                    lastPlayedTime = currentTimeKey;
-                    return true;
+            const renderContext = {
+                canvasContext: ctx,
+                viewport: viewport
+            };
+
+            page.render(renderContext).promise.then(function() {
+                pageRendering = false;
+                if (pageNumPending !== null) {
+                    renderPage(pageNumPending);
+                    pageNumPending = null;
                 }
-            }
-            return false;
+            });
+        });
+
+        document.getElementById('page_num').textContent = num;
+    }
+
+    function prevPage() {
+        if (pageNum <= 1) return;
+        pageNum--;
+        queueRenderPage(pageNum);
+    }
+
+    function nextPage() {
+        if (pageNum >= pdfDoc.numPages) return;
+        pageNum++;
+        queueRenderPage(pageNum);
+    }
+
+    function queueRenderPage(num) {
+        if (pageRendering) {
+            pageNumPending = num;
+        } else {
+            renderPage(num);
         }
+    }
 
-        function playSound() {
-            const now = new Date();
-            const hour = now.getHours();
-            const minute = now.getMinutes();
-            const url = getAudioUrl(hour, minute);
-
-            try {
-                audio = new Audio(url);
-                audio.play()
-                    .then(() => {
-                        addLog(`🔊 Phát âm thanh ${hour}:${minute.toString().padStart(2, '0')}`);
-                    })
-                    .catch(err => {
-                        addLog('❌ Lỗi phát âm thanh: ' + err.message);
-                    });
-            } catch (err) {
-                addLog('❌ Lỗi: ' + err.message);
-            }
-        }
-
-        function updateDisplay() {
-            const now = new Date();
-            currentTimeDisplay.textContent = now.toLocaleTimeString('vi-VN');
-            nextAlarmDisplay.textContent = `Mốc báo giờ tiếp theo: ${getNextAlarmTime()}`;
-        }
-
-        function checkTime() {
-            updateDisplay();
-            
-            if (shouldPlaySound()) {
-                playSound();
-            }
-        }
-
-        function startTimer() {
-            // Phát âm thanh kích hoạt ngay khi bấm nút (quan trọng cho iOS)
-            const activationAudio = new Audio('https://github.com/Nhut11790/ipanhut117117/releases/download/v1.0_music-time/am.thanh.kich.hoat.mp3');
-            activationAudio.play()
-                .then(() => {
-                    addLog('🎵 Kích hoạt âm thanh thành công!');
+    function loadWord(file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const arrayBuffer = e.target.result;
+            mammoth.convertToHtml({arrayBuffer: arrayBuffer})
+                .then(function(result) {
+                    contentArea.innerHTML = `<div class="editor-content" contenteditable="true">${result.value}</div>`;
                 })
-                .catch(err => {
-                    addLog('⚠️ Lỗi kích hoạt âm thanh: ' + err.message);
+                .catch(function(err) {
+                    contentArea.innerHTML = `<div class="editor-content" contenteditable="true"><p style="color:red;">Lỗi khi đọc file: ${err.message}</p></div>`;
                 });
-            
-            clearInterval(checkInterval);
-            lastPlayedTime = null;
-            
-            checkInterval = setInterval(checkTime, 1000);
-            
-            updateDisplay();
+        };
+        reader.readAsArrayBuffer(file);
+    }
 
-            status.textContent = '✅ Đang hoạt động';
-            status.className = 'status active';
-            startBtn.disabled = true;
-            stopBtn.disabled = false;
-            
-            addLog('▶️ Bắt đầu báo giờ tự động');
-            addLog(`📍 Mốc tiếp theo: ${getNextAlarmTime()}`);
+    function formatText(command) {
+        if (currentFileType === 'word') {
+            document.execCommand(command, false, null);
         }
+    }
 
-        function stopTimer() {
-            clearInterval(checkInterval);
-            lastPlayedTime = null;
-            
-            status.textContent = '⏸️ Đã dừng';
-            status.className = 'status inactive';
-            startBtn.disabled = false;
-            stopBtn.disabled = true;
-            
-            addLog('⏹️ Đã dừng báo giờ');
+    function changeFontSize(size) {
+        if (currentFileType === 'word') {
+            document.execCommand('fontSize', false, size);
         }
+    }
 
-        startBtn.addEventListener('click', startTimer);
-        stopBtn.addEventListener('click', stopTimer);
+    function downloadFile() {
+        if (currentFileType === 'word') {
+            const content = document.querySelector('.editor-content').innerHTML;
+            const blob = new Blob([content], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'edited_document.html';
+            a.click();
+            URL.revokeObjectURL(url);
+        } else if (currentFileType === 'pdf') {
+            alert('Tính năng tải xuống PDF đã chỉnh sửa sẽ được bổ sung. Hiện tại bạn có thể chụp màn hình các trang.');
+        }
+    }
 
-        // Khởi tạo
-        generateSchedule();
-        updateDisplay();
-        setInterval(updateDisplay, 1000);
-        addLog('💡 Sẵn sàng. Nhấn "Bắt đầu" để kích hoạt báo giờ tự động');
-    </script>
+    function resetEditor() {
+        uploadSection.style.display = 'block';
+        editorSection.style.display = 'none';
+        contentArea.innerHTML = '';
+        fileInput.value = '';
+        currentFile = null;
+        currentFileType = null;
+        pageNum = 1;
+        pdfDoc = null;
+    }
+</script>
+```
+
 </body>
 </html>
