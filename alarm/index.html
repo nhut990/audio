@@ -128,6 +128,12 @@
         box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
     }
 
+    .toolbar button:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+        transform: none;
+    }
+
     .toolbar select {
         padding: 10px 15px;
         border: 2px solid #667eea;
@@ -143,6 +149,7 @@
         min-height: 500px;
         background: white;
         outline: none;
+        line-height: 1.6;
     }
 
     .editor-content[contenteditable="true"]:focus {
@@ -201,6 +208,13 @@
         color: #333;
     }
 
+    .loading {
+        text-align: center;
+        padding: 40px;
+        font-size: 1.2em;
+        color: #667eea;
+    }
+
     @media (max-width: 768px) {
         .header h1 {
             font-size: 1.8em;
@@ -230,9 +244,9 @@
         <div class="upload-area" id="uploadArea">
             <div class="upload-icon">📁</div>
             <div class="upload-text">Kéo thả file vào đây hoặc click để chọn</div>
-            <div class="upload-subtext">Hỗ trợ: PDF, DOCX, DOC (tối đa 10MB)</div>
+            <div class="upload-subtext">Hỗ trợ: PDF, DOCX (tối đa 10MB)</div>
         </div>
-        <input type="file" id="fileInput" accept=".pdf,.doc,.docx">
+        <input type="file" id="fileInput" accept=".pdf,.docx">
     </div>
 
     <div class="editor-section" id="editorSection">
@@ -241,21 +255,21 @@
             <span class="file-type" id="fileType">---</span>
         </div>
 
-        <div class="toolbar">
-            <button onclick="formatText('bold')">🅱️ Đậm</button>
-            <button onclick="formatText('italic')">🅸 Nghiêng</button>
-            <button onclick="formatText('underline')">🆄 Gạch chân</button>
-            <select onchange="changeFontSize(this.value)">
-                <option value="3">Nhỏ</option>
-                <option value="4" selected>Trung bình</option>
+        <div class="toolbar" id="toolbar">
+            <button onclick="applyFormat('bold')">🅱️ Đậm</button>
+            <button onclick="applyFormat('italic')">🅸 Nghiêng</button>
+            <button onclick="applyFormat('underline')">🆄 Gạch chân</button>
+            <select onchange="applyFontSize(this.value)">
+                <option value="2">Nhỏ</option>
+                <option value="3" selected>Trung bình</option>
                 <option value="5">Lớn</option>
-                <option value="6">Rất lớn</option>
+                <option value="7">Rất lớn</option>
             </select>
-            <button onclick="formatText('justifyLeft')">⬅️ Trái</button>
-            <button onclick="formatText('justifyCenter')">↔️ Giữa</button>
-            <button onclick="formatText('justifyRight')">➡️ Phải</button>
-            <button onclick="downloadFile()">💾 Tải xuống</button>
-            <button onclick="resetEditor()">🔄 File mới</button>
+            <button onclick="applyFormat('justifyLeft')">⬅️ Trái</button>
+            <button onclick="applyFormat('justifyCenter')">↔️ Giữa</button>
+            <button onclick="applyFormat('justifyRight')">➡️ Phải</button>
+            <button onclick="saveContent()">💾 Tải xuống</button>
+            <button onclick="resetApp()">🔄 File mới</button>
         </div>
 
         <div id="contentArea"></div>
@@ -263,8 +277,16 @@
 </div>
 
 <script>
+    // Khởi tạo PDF.js
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
+    // Biến toàn cục
+    let currentFile = null;
+    let currentFileType = null;
+    let pdfDoc = null;
+    let pageNum = 1;
+
+    // Các phần tử DOM
     const uploadArea = document.getElementById('uploadArea');
     const fileInput = document.getElementById('fileInput');
     const uploadSection = document.getElementById('uploadSection');
@@ -272,15 +294,9 @@
     const contentArea = document.getElementById('contentArea');
     const fileName = document.getElementById('fileName');
     const fileType = document.getElementById('fileType');
+    const toolbar = document.getElementById('toolbar');
 
-    let currentFile = null;
-    let currentFileType = null;
-    let pdfDoc = null;
-    let pageNum = 1;
-    let pageRendering = false;
-    let pageNumPending = null;
-
-    // Drag and drop
+    // Xử lý sự kiện upload
     uploadArea.addEventListener('click', () => fileInput.click());
     
     uploadArea.addEventListener('dragover', (e) => {
@@ -297,164 +313,192 @@
         uploadArea.classList.remove('dragover');
         const files = e.dataTransfer.files;
         if (files.length > 0) {
-            handleFile(files[0]);
+            processFile(files[0]);
         }
     });
 
     fileInput.addEventListener('change', (e) => {
         if (e.target.files.length > 0) {
-            handleFile(e.target.files[0]);
+            processFile(e.target.files[0]);
         }
     });
 
-    function handleFile(file) {
-        // Kiểm tra kích thước file (tối đa 10MB)
+    // Xử lý file
+    function processFile(file) {
+        // Kiểm tra kích thước
         if (file.size > 10 * 1024 * 1024) {
-            alert('File quá lớn! Vui lòng chọn file nhỏ hơn 10MB.');
+            alert('⚠️ File quá lớn! Vui lòng chọn file nhỏ hơn 10MB.');
+            return;
+        }
+
+        const ext = file.name.split('.').pop().toLowerCase();
+        
+        // Kiểm tra định dạng
+        if (!['pdf', 'docx'].includes(ext)) {
+            alert('⚠️ Chỉ hỗ trợ file PDF và DOCX!\n\nLưu ý: File .DOC (Word cũ) không được hỗ trợ. Vui lòng chuyển sang .DOCX');
             return;
         }
 
         currentFile = file;
-        const extension = file.name.split('.').pop().toLowerCase();
+        currentFileType = ext;
         
-        // Kiểm tra định dạng file
-        if (!['pdf', 'doc', 'docx'].includes(extension)) {
-            alert('Định dạng file không được hỗ trợ! Vui lòng chọn file PDF, DOC hoặc DOCX.');
-            return;
-        }
-
         fileName.textContent = file.name;
-        fileType.textContent = extension.toUpperCase();
+        fileType.textContent = ext.toUpperCase();
         
         uploadSection.style.display = 'none';
         editorSection.style.display = 'block';
+        
+        contentArea.innerHTML = '<div class="loading">⏳ Đang tải file...</div>';
 
-        if (extension === 'pdf') {
-            currentFileType = 'pdf';
-            loadPDF(file);
-        } else if (extension === 'docx' || extension === 'doc') {
-            currentFileType = 'word';
-            loadWord(file);
+        if (ext === 'pdf') {
+            handlePDF(file);
+        } else if (ext === 'docx') {
+            handleWord(file);
         }
     }
 
-    function loadPDF(file) {
+    // Xử lý file PDF
+    function handlePDF(file) {
         const reader = new FileReader();
         reader.onload = function(e) {
-            const typedarray = new Uint8Array(e.target.result);
+            const data = new Uint8Array(e.target.result);
             
-            pdfjsLib.getDocument(typedarray).promise.then(function(pdf) {
+            pdfjsLib.getDocument(data).promise.then(function(pdf) {
                 pdfDoc = pdf;
-                contentArea.innerHTML = `
-                    <div class="pdf-viewer">
-                        <div class="pdf-controls">
-                            <button onclick="prevPage()">◀️ Trang trước</button>
-                            <span class="page-info">Trang <span id="page_num"></span> / <span id="page_count"></span></span>
-                            <button onclick="nextPage()">Trang sau ▶️</button>
-                        </div>
-                        <canvas id="pdf-canvas" class="pdf-page"></canvas>
-                    </div>
-                `;
-                document.getElementById('page_count').textContent = pdf.numPages;
-                renderPage(pageNum);
+                displayPDFViewer();
+                renderPDFPage(1);
+            }).catch(function(error) {
+                contentArea.innerHTML = '<div class="editor-content"><p style="color:red;">❌ Lỗi: Không thể đọc file PDF. File có thể bị hỏng hoặc có mật khẩu bảo vệ.</p></div>';
+                console.error(error);
             });
+        };
+        reader.onerror = function() {
+            contentArea.innerHTML = '<div class="editor-content"><p style="color:red;">❌ Lỗi khi đọc file</p></div>';
         };
         reader.readAsArrayBuffer(file);
     }
 
-    function renderPage(num) {
-        pageRendering = true;
+    // Hiển thị PDF viewer
+    function displayPDFViewer() {
+        toolbar.style.display = 'none';
+        contentArea.innerHTML = `
+            <div class="pdf-viewer">
+                <div class="pdf-controls">
+                    <button onclick="prevPDFPage()">◀️ Trước</button>
+                    <span class="page-info">Trang <span id="pageNum">1</span> / <span id="pageCount">${pdfDoc.numPages}</span></span>
+                    <button onclick="nextPDFPage()">Sau ▶️</button>
+                </div>
+                <canvas id="pdfCanvas" class="pdf-page"></canvas>
+            </div>
+        `;
+    }
+
+    // Render trang PDF
+    function renderPDFPage(num) {
+        pageNum = num;
         pdfDoc.getPage(num).then(function(page) {
-            const canvas = document.getElementById('pdf-canvas');
+            const canvas = document.getElementById('pdfCanvas');
+            if (!canvas) return;
+            
             const ctx = canvas.getContext('2d');
             const viewport = page.getViewport({scale: 1.5});
 
             canvas.height = viewport.height;
             canvas.width = viewport.width;
 
-            const renderContext = {
+            page.render({
                 canvasContext: ctx,
                 viewport: viewport
-            };
-
-            page.render(renderContext).promise.then(function() {
-                pageRendering = false;
-                if (pageNumPending !== null) {
-                    renderPage(pageNumPending);
-                    pageNumPending = null;
-                }
             });
+
+            const pageNumEl = document.getElementById('pageNum');
+            if (pageNumEl) pageNumEl.textContent = num;
         });
-
-        document.getElementById('page_num').textContent = num;
     }
 
-    function prevPage() {
+    function prevPDFPage() {
         if (pageNum <= 1) return;
-        pageNum--;
-        queueRenderPage(pageNum);
+        renderPDFPage(pageNum - 1);
     }
 
-    function nextPage() {
+    function nextPDFPage() {
         if (pageNum >= pdfDoc.numPages) return;
-        pageNum++;
-        queueRenderPage(pageNum);
+        renderPDFPage(pageNum + 1);
     }
 
-    function queueRenderPage(num) {
-        if (pageRendering) {
-            pageNumPending = num;
-        } else {
-            renderPage(num);
-        }
-    }
-
-    function loadWord(file) {
+    // Xử lý file Word
+    function handleWord(file) {
+        toolbar.style.display = 'flex';
+        
         const reader = new FileReader();
         reader.onload = function(e) {
-            const arrayBuffer = e.target.result;
-            mammoth.convertToHtml({arrayBuffer: arrayBuffer})
+            mammoth.convertToHtml({arrayBuffer: e.target.result})
                 .then(function(result) {
-                    contentArea.innerHTML = `<div class="editor-content" contenteditable="true">${result.value || '<p>Nội dung trống hoặc không đọc được</p>'}</div>`;
+                    let html = result.value;
+                    if (!html || html.trim() === '') {
+                        html = '<p>File trống hoặc không có nội dung đọc được.</p>';
+                    }
+                    contentArea.innerHTML = `<div class="editor-content" contenteditable="true">${html}</div>`;
                 })
                 .catch(function(err) {
-                    contentArea.innerHTML = `<div class="editor-content" contenteditable="true"><p style="color:red;">Lỗi khi đọc file: ${err.message}</p><p>Vui lòng thử file .docx khác hoặc chuyển đổi file sang định dạng mới hơn.</p></div>`;
+                    contentArea.innerHTML = `<div class="editor-content"><p style="color:red;">❌ Lỗi: ${err.message}</p><p>Vui lòng đảm bảo file là định dạng .DOCX hợp lệ.</p></div>`;
+                    console.error(err);
                 });
         };
-        reader.onerror = function(err) {
-            contentArea.innerHTML = `<div class="editor-content" contenteditable="true"><p style="color:red;">Không thể đọc file. Vui lòng thử lại.</p></div>`;
+        reader.onerror = function() {
+            contentArea.innerHTML = '<div class="editor-content"><p style="color:red;">❌ Không thể đọc file</p></div>';
         };
         reader.readAsArrayBuffer(file);
     }
 
-    function formatText(command) {
-        if (currentFileType === 'word') {
-            document.execCommand(command, false, null);
-        }
+    // Định dạng văn bản
+    function applyFormat(cmd) {
+        if (currentFileType !== 'docx') return;
+        document.execCommand(cmd, false, null);
     }
 
-    function changeFontSize(size) {
-        if (currentFileType === 'word') {
-            document.execCommand('fontSize', false, size);
-        }
+    function applyFontSize(size) {
+        if (currentFileType !== 'docx') return;
+        document.execCommand('fontSize', false, size);
     }
 
-    function downloadFile() {
-        if (currentFileType === 'word') {
-            const content = document.querySelector('.editor-content').innerHTML;
-            const blob = new Blob([content], { type: 'text/html' });
+    // Lưu nội dung
+    function saveContent() {
+        if (currentFileType === 'docx') {
+            const editor = document.querySelector('.editor-content');
+            if (!editor) return;
+            
+            const content = `
+```
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>${currentFile.name}</title>
+    <style>body { font-family: Arial, sans-serif; padding: 40px; line-height: 1.6; }</style>
+</head>
+<body>
+${editor.innerHTML}
+</body>
+</html>`;
+
+```
+            const blob = new Blob([content], { type: 'text/html;charset=utf-8' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'edited_document.html';
+            a.download = currentFile.name.replace('.docx', '') + '_edited.html';
             a.click();
             URL.revokeObjectURL(url);
-        } else if (currentFileType === 'pdf') {
-            alert('Tính năng tải xuống PDF đã chỉnh sửa sẽ được bổ sung. Hiện tại bạn có thể chụp màn hình các trang.');
+        } else {
+            alert('ℹ️ File PDF chỉ xem được, không thể chỉnh sửa và tải xuống.');
         }
     }
 
-    function resetEditor() {
+    // Reset ứng dụng
+    function resetApp() {
         uploadSection.style.display = 'block';
         editorSection.style.display = 'none';
         contentArea.innerHTML = '';
@@ -463,6 +507,7 @@
         currentFileType = null;
         pageNum = 1;
         pdfDoc = null;
+        toolbar.style.display = 'flex';
     }
 </script>
 ```
