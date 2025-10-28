@@ -1,231 +1,97 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="utf-8" />
-  <title>IPA Inspector — Lấy Bundle / iOS min / Version</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <style>
-    body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial; padding: 18px; max-width:900px; margin:auto; }
-    input[type=text] { width:100%; padding:8px; box-sizing:border-box; }
-    button { padding:8px 12px; margin-top:8px; }
-    pre { background:#f4f4f4; padding:12px; overflow:auto; }
-    .warn { color:#a33; }
-    .ok { color:#166; }
-    label { font-weight:600; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IPA Inspector Offline</title>
+
+<!-- Thư viện cần thiết -->
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/plist@3.0.6/dist/plist.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bplist-parser@0.3.2/dist/bplist-parser.min.js"></script>
+
+<style>
+body {
+  font-family: Arial, sans-serif;
+  max-width: 600px;
+  margin: 30px auto;
+  padding: 10px;
+}
+h1 {
+  text-align: center;
+  color: #222;
+}
+#output {
+  background: #f9f9f9;
+  padding: 10px;
+  border-radius: 5px;
+  white-space: pre-wrap;
+  border: 1px solid #ddd;
+}
+input[type=file] {
+  display: block;
+  margin: 15px 0;
+}
+</style>
 </head>
+
 <body>
-  <h1>IPA Inspector</h1>
-  <p>Nhập URL đến file <code>.ipa</code> (http/https) rồi bấm <strong>Parse</strong>.</p>
+<h1>IPA Inspector (Offline)</h1>
+<p>Chọn file <b>.ipa</b> từ máy của bạn để xem thông tin ứng dụng:</p>
 
-  <label for="url">IPA URL</label>
-  <input id="url" type="text" placeholder="https://example.com/app.ipa" />
-  <button id="parseBtn">Parse</button>
-  <button id="fileBtn">Mở file .ipa từ máy</button>
+<input type="file" id="fileInput" accept=".ipa">
+<pre id="output">Chưa chọn file.</pre>
 
-  <p id="status"></p>
+<script>
+const fileInput = document.getElementById('fileInput');
+const output = document.getElementById('output');
 
-  <div id="result" style="display:none;">
-    <h3>Kết quả</h3>
-    <table>
-      <tbody>
-        <tr><td><strong>Bundle Identifier</strong></td><td id="bundle">—</td></tr>
-        <tr><td><strong>Minimum iOS</strong></td><td id="minios">—</td></tr>
-        <tr><td><strong>Version (CFBundleShortVersionString)</strong></td><td id="ver">—</td></tr>
-        <tr><td><strong>Build (CFBundleVersion)</strong></td><td id="build">—</td></tr>
-        <tr><td><strong>App name</strong></td><td id="appname">—</td></tr>
-        <tr><td><strong>Info.plist path</strong></td><td id="plistpath">—</td></tr>
-      </tbody>
-    </table>
+fileInput.addEventListener('change', async function() {
+  const file = this.files[0];
+  if (!file) return;
+  output.textContent = "Đang đọc file .ipa, vui lòng chờ...";
 
-    <h4>Full Info.plist (JSON)</h4>
-    <pre id="plistjson"></pre>
-  </div>
+  try {
+    const arrayBuffer = await file.arrayBuffer();
+    const zip = await JSZip.loadAsync(arrayBuffer);
 
-  <hr>
-  <p class="warn">Ghi chú: cần 2 thư viện JS: <code>JSZip</code> và <code>plist / bplist-parser</code>. Trang dùng CDN.</p>
-
-  <!-- Thư viện JSZip -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-  <!-- plist (XML plist parser) -->
-  <script src="https://unpkg.com/plist@3.0.1/dist/plist.min.js"></script>
-  <!-- bplist-parser (binary plist) - dùng bản browserified nếu có -->
-  <script src="https://unpkg.com/bplist-parser@0.1.1/index.js"></script>
-
-  <script>
-  // Hàm hiển thị trạng thái
-  const statusEl = document.getElementById('status');
-  function status(msg, ok=false){
-    statusEl.textContent = msg;
-    statusEl.className = ok ? 'ok' : 'warn';
-  }
-
-  // Tìm đường dẫn Info.plist trong ZIP
-  function findInfoPlistPath(entries) {
-    // entries là array các tên file
-    const candidates = entries.filter(n => n.startsWith('Payload/') && n.endsWith('Info.plist'));
-    if (!candidates.length) return null;
-    // ưu tiên dạng Payload/AppName.app/Info.plist
-    for (const c of candidates) {
-      const parts = c.split('/');
-      if (parts.length >= 3 && parts[parts.length-2].endsWith('.app')) return c;
-    }
-    return candidates[0];
-  }
-
-  // Kiểm tra magic header của binary plist: "bplist"
-  function isBinaryPlist(bytes) {
-    if (!bytes || bytes.length < 6) return false;
-    const sig = String.fromCharCode(...bytes.slice(0,6));
-    return sig === 'bplist';
-  }
-
-  // Chuyển ArrayBuffer -> Uint8Array
-  function toUint8(a) {
-    return new Uint8Array(a);
-  }
-
-  // Parse xml plist text -> object using plist.js (window.plist)
-  function parseXmlPlistText(text) {
-    if (!window.plist) throw new Error('Library plist không sẵn có');
-    return window.plist.parse(text);
-  }
-
-  // Parse binary plist using bplistParser (from bplist-parser lib). It exposes parseBuffer
-  function parseBinaryPlist(uint8arr) {
-    if (!window.bplistParser && !window.parseBplist) {
-      // some builds expose parseBplist or bplistParser
-      if (window.bplistParser && typeof window.bplistParser.parseBuffer === 'function') {
-        return window.bplistParser.parseBuffer(uint8arr);
+    // Tìm file Info.plist trong IPA
+    let infoPlistFile = null;
+    zip.forEach((relativePath) => {
+      if (relativePath.match(/Payload\/[^/]+\.app\/Info\.plist$/)) {
+        infoPlistFile = relativePath;
       }
-      throw new Error('Binary plist parser (bplist-parser) không có trong trang. Vui lòng dùng server hoặc bật CORS và thử lại.');
-    }
-    // try different exposures
-    if (window.bplistParser && typeof window.bplistParser.parseBuffer === 'function') {
-      return window.bplistParser.parseBuffer(uint8arr);
-    }
-    if (typeof window.parseBplist === 'function') {
-      return window.parseBplist(uint8arr); // hypothetical
-    }
-    if (typeof window.bplistParser === 'function') {
-      return window.bplistParser(uint8arr);
-    }
-    throw new Error('Không tìm được hàm parse cho binary plist trong bplist-parser đã load.');
-  }
+    });
 
-  // Hiển thị kết quả
-  function showResult(info, plistPath) {
-    document.getElementById('bundle').textContent = info.CFBundleIdentifier || info.BundleIdentifier || '(không tìm thấy)';
-    document.getElementById('minios').textContent = info.MinimumOSVersion || info.LSMinimumSystemVersion || info.DTPlatformVersion || '(không tìm thấy)';
-    document.getElementById('ver').textContent = info.CFBundleShortVersionString || '(không tìm thấy)';
-    document.getElementById('build').textContent = info.CFBundleVersion || '(không tìm thấy)';
-    document.getElementById('appname').textContent = info.CFBundleDisplayName || info.CFBundleName || '(không tìm thấy)';
-    document.getElementById('plistpath').textContent = plistPath || '(không tìm thấy)';
-    const pretty = JSON.stringify(info, null, 2);
-    document.getElementById('plistjson').textContent = pretty;
-    document.getElementById('result').style.display = 'block';
-  }
-
-  async function processIpaArrayBuffer(ab) {
-    status('Đang mở IPA...', true);
-    const zip = await JSZip.loadAsync(ab);
-    const entries = Object.keys(zip.files);
-    const plistPath = findInfoPlistPath(entries);
-    if (!plistPath) {
-      status('Không tìm thấy Info.plist trong IPA', false);
-      throw new Error('Info.plist không tìm thấy');
+    if (!infoPlistFile) {
+      output.textContent = "Không tìm thấy Info.plist trong file IPA.";
+      return;
     }
-    status('Đã tìm Info.plist: ' + plistPath, true);
 
-    // đọc file Info.plist dạng ArrayBuffer
-    const file = zip.file(plistPath);
-    if (!file) throw new Error('Không mở được entry Info.plist');
-    const contentAB = await file.async('arraybuffer');
-    const u8 = toUint8(contentAB);
-
+    const plistData = await zip.file(infoPlistFile).async("arraybuffer");
     let info = null;
 
     try {
-      if (isBinaryPlist(u8)) {
-        status('Info.plist là binary plist — parsing...', true);
-        // bplist-parser trả về array (root objects), thường object ở index 0
-        const parsed = parseBinaryPlist(u8);
-        // nếu trả về promise or array
-        if (parsed && typeof parsed.then === 'function') {
-          // in case the lib returns a promise
-          info = await parsed;
-        } else {
-          info = parsed;
-        }
-        // bplist-parser thường trả về array of objects
-        if (Array.isArray(info)) info = info[0] || {};
-      } else {
-        status('Info.plist là XML plist — parsing...', true);
-        const text = new TextDecoder().decode(u8);
-        info = parseXmlPlistText(text);
-      }
+      info = plist.parse(new TextDecoder().decode(plistData));
     } catch (e) {
-      console.error(e);
-      throw new Error('Lỗi khi parse Info.plist: ' + (e && e.message ? e.message : e));
+      // Nếu Info.plist là binary, dùng bplist-parser
+      info = bplistParser.parseBuffer(Buffer.from(plistData))[0];
     }
 
-    showResult(info, plistPath);
-    status('Hoàn tất.', true);
+    const bundleId = info["CFBundleIdentifier"] || "Không có";
+    const version = info["CFBundleShortVersionString"] || "Không có";
+    const minIOS = info["MinimumOSVersion"] || "Không có";
+
+    output.textContent =
+      "📦 Tên gói (Bundle ID): " + bundleId + "\n" +
+      "🔢 Phiên bản: " + version + "\n" +
+      "📱 iOS tối thiểu: " + minIOS + "\n\n" +
+      "✅ Đọc thành công từ file: " + file.name;
+  } catch (err) {
+    console.error(err);
+    output.textContent = "❌ Lỗi: Không thể đọc file .ipa\nChi tiết: " + err;
   }
-
-  // Fetch từ URL (cân nhắc CORS)
-  async function fetchIpaFromUrl(url) {
-    status('Fetching IPA...', true);
-    const resp = await fetch(url, { method: 'GET' });
-    if (!resp.ok) throw new Error('HTTP error: ' + resp.status);
-    const ab = await resp.arrayBuffer();
-    return ab;
-  }
-
-  // Event handlers
-  document.getElementById('parseBtn').addEventListener('click', async () => {
-    const url = document.getElementById('url').value.trim();
-    if (!url) { status('Nhập URL trước.', false); return; }
-    try {
-      status('Bắt đầu tải... (chú ý: CORS có thể chặn)', true);
-      const ab = await fetchIpaFromUrl(url);
-      await processIpaArrayBuffer(ab);
-    } catch (err) {
-      console.error(err);
-      status('Lỗi: ' + err.message, false);
-      alert('Lỗi: ' + err.message + '\nNếu liên quan tới CORS, hãy dùng proxy hoặc tải file về rồi bấm "Mở file .ipa từ máy".');
-    }
-  });
-
-  // Mở file từ máy người dùng (không có vấn đề CORS)
-  document.getElementById('fileBtn').addEventListener('click', () => {
-    const inp = document.createElement('input');
-    inp.type = 'file';
-    inp.accept = '.ipa,application/zip,application/octet-stream';
-    inp.onchange = async () => {
-      const f = inp.files[0];
-      if (!f) return;
-      status('Đang đọc file từ máy...', true);
-      try {
-        const ab = await f.arrayBuffer();
-        await processIpaArrayBuffer(ab);
-      } catch (e) {
-        console.error(e);
-        status('Lỗi khi đọc file: ' + (e.message || e), false);
-      }
-    };
-    inp.click();
-  });
-
-  // Quick check libraries loaded
-  window.addEventListener('load', () => {
-    if (!window.JSZip) {
-      status('JSZip chưa được load!', false);
-    } else {
-      status('Sẵn sàng. Chú ý CORS khi dùng URL.', true);
-    }
-  });
-
-  </script>
+});
+</script>
 </body>
 </html>
